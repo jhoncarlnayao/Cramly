@@ -11,9 +11,31 @@
   <title>Cramly</title>
   <link rel="icon" href="logo.png" type="image/png">
   <link rel="stylesheet" href="/css/main.css" />
+  <!-- ↓ Load animations — add load-animations.css to your /css/ folder -->
+  <link rel="stylesheet" href="/css/load-animations.css" />
+
+  <style>
+    /* ── Page veil: covers on arrival, fades out → seamless from intro ── */
+    #pageVeil {
+      position: fixed;
+      inset: 0;
+      z-index: 99999;
+      background: #0c0c0a;
+      pointer-events: none;
+      opacity: 1;
+      transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    #pageVeil.out {
+      opacity: 0;
+    }
+  </style>
 </head>
 
 <body>
+
+<!-- Veil fades out on load, giving a smooth entry from the loading screen -->
+<div id="pageVeil"></div>
+
   <div id="viewport">
     <div id="world">
       <canvas id="drawCanvas" width="8000" height="8000"></canvas>
@@ -97,12 +119,12 @@
         <line x1="9" y1="12" x2="15" y2="7.5" />
         <line x1="9" y1="12" x2="15" y2="16.5" />
       </svg></button>
-        <button class="sd-btn" onclick="startCramMode()" data-tip="Cram mode (⌘E)">
-  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-    <circle cx="12" cy="12" r="10"/>
-    <polyline points="12 6 12 12 16 14"/>
-  </svg>
-</button>
+    <button class="sd-btn" onclick="startCramMode()" data-tip="Cram mode (⌘E)">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/>
+        <polyline points="12 6 12 12 16 14"/>
+      </svg>
+    </button>
     <button class="sd-btn" id="drawBtn" onclick="toggleDrawMode()" data-tip="Draw (P)"><svg width="15" height="15"
         viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M12 20h9" />
@@ -218,16 +240,6 @@
     <div class="tb-sep"></div>
     <button class="tb-btn" id="snapBtn" onclick="toggleSnap()" title="Snap to grid">⊞ Snap</button>
     <div class="tb-sep"></div>
-    <span class="palette-tip">Color:</span>
-    <div class="sw on" style="background:#f0f0f0" data-c="#f0f0f0" onclick="pickPalette(this)"></div>
-    <div class="sw" style="background:#fde68a" data-c="#fde68a" onclick="pickPalette(this)"></div>
-    <div class="sw" style="background:#93c5fd" data-c="#93c5fd" onclick="pickPalette(this)"></div>
-    <div class="sw" style="background:#86efac" data-c="#86efac" onclick="pickPalette(this)"></div>
-    <div class="sw" style="background:#f9a8d4" data-c="#f9a8d4" onclick="pickPalette(this)"></div>
-    <div class="sw" style="background:#c4b5fd" data-c="#c4b5fd" onclick="pickPalette(this)"></div>
-    <div class="sw" style="background:#fca5a5" data-c="#fca5a5" onclick="pickPalette(this)"></div>
-    <div class="sw" style="background:#6ee7b7" data-c="#6ee7b7" onclick="pickPalette(this)"></div>
-    <div class="tb-sep"></div>
     <div id="drawColorRow">
       <span class="palette-tip" style="font-weight:700;color:#7c3aed">✏️</span>
       <div class="draw-swatch on" style="background:#111" data-dc="#111" onclick="pickDrawColor(this)"></div>
@@ -253,6 +265,9 @@
     <span class="zoom-lbl" id="zoomLbl">100%</span>
     <button class="tb-btn" onclick="zoomIn()"><i class="fa-solid fa-plus"></i></button>
     <button class="tb-btn" onclick="zoomReset()">↺</button>
+    <div class="tb-sep"></div>
+    <button class="tb-btn" onclick="exportFullCanvas()" title="Export full canvas backup">⬇ Backup</button>
+    <label class="tb-btn" style="cursor:pointer" title="Import full canvas backup">⬆ Restore<input type="file" accept=".json" style="display:none" onchange="importFullCanvas(this)" /></label>
   </div>
 
   <div id="bookmarkBar"></div>
@@ -672,81 +687,84 @@
   </div>
 
   <!-- Cram Mode Setup Modal -->
-<div class="modal-bg" id="cramModeModal">
-  <div class="modal" style="width:380px">
-    <h2>⏱️ Cram Mode</h2>
-    <p style="font-size:12px;color:#9a9a9a;margin:-4px 0 16px">Lock in. Use Cramly freely. Timer floats on screen.</p>
-    <div class="field">
-      <label>Session duration (minutes)</label>
-      <input type="number" id="cramDuration" value="25" min="1" max="180" />
-    </div>
-    <div class="field">
-      <label>Session name <span style="color:#9a9a9a;font-weight:400">(optional)</span></label>
-      <input type="text" id="cramSessionName" placeholder="e.g. Bio chapter 4" />
-    </div>
-    <div class="modal-footer">
-      <button class="btn-cancel" onclick="closeOv('cramModeModal')">Cancel</button>
-      <button class="btn-ok" onclick="launchCramMode()">🚀 Start session</button>
-    </div>
-  </div>
-</div>
-
-<!-- Floating Cram HUD -->
-<div id="cramHUD" style="display:none;position:fixed;bottom:28px;right:24px;z-index:9999;font-family:'Plus Jakarta Sans',sans-serif;user-select:none">
-  <div id="cramHUDInner" style="background:#0f0f0f;border:1px solid #2a2a2a;border-radius:16px;padding:14px 16px;min-width:200px;box-shadow:0 8px 40px rgba(0,0,0,.5)">
-
-    <!-- Header row -->
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-      <span id="cramHUDLabel" style="font-size:11px;color:#555;font-weight:600;text-transform:uppercase;letter-spacing:.6px">Cram</span>
-      <div style="display:flex;gap:6px;align-items:center">
-        <span id="cramTabBadge" style="display:none;font-size:10px;background:#2a1010;color:#f87171;border:1px solid #4a1a1a;padding:2px 7px;border-radius:999px">⚠ <span id="cramTabNum">0</span> switch</span>
-        <button onclick="toggleHUDCollapse()" id="cramCollapseBtn" style="background:none;border:none;color:#555;cursor:pointer;font-size:16px;line-height:1;padding:0">−</button>
-        <button onclick="endCramMode()" style="background:none;border:none;color:#555;cursor:pointer;font-size:13px;line-height:1;padding:0" title="End session">✕</button>
+  <div class="modal-bg" id="cramModeModal">
+    <div class="modal" style="width:380px">
+      <h2>⏱️ Cram Mode</h2>
+      <p style="font-size:12px;color:#9a9a9a;margin:-4px 0 16px">Lock in. Use Cramly freely. Timer floats on screen.</p>
+      <div class="field">
+        <label>Session duration (minutes)</label>
+        <input type="number" id="cramDuration" value="25" min="1" max="180" />
       </div>
-    </div>
-
-    <div id="cramHUDBody">
-      <!-- Big timer -->
-      <div style="text-align:center;margin-bottom:10px">
-        <div id="cramTimerDisplay" style="font-size:40px;font-weight:200;color:#fff;font-variant-numeric:tabular-nums;letter-spacing:-1px;line-height:1">25:00</div>
-        <div style="font-size:10px;color:#444;margin-top:2px">remaining</div>
+      <div class="field">
+        <label>Session name <span style="color:#9a9a9a;font-weight:400">(optional)</span></label>
+        <input type="text" id="cramSessionName" placeholder="e.g. Bio chapter 4" />
       </div>
-
-      <!-- Progress bar -->
-      <div style="height:3px;background:#1a1a1a;border-radius:2px;overflow:hidden;margin-bottom:12px">
-        <div id="cramProgressBar" style="height:100%;background:#3b82f6;width:0%;transition:width 1s linear"></div>
-      </div>
-
-      <!-- Stats row -->
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px">
-        <div style="background:#1a1a1a;border-radius:8px;padding:7px 6px;text-align:center">
-          <div id="cramTimeSpent" style="font-size:15px;font-weight:500;color:#fff">0m</div>
-          <div style="font-size:9px;color:#555;margin-top:2px">spent</div>
-        </div>
-        <div style="background:#1a1a1a;border-radius:8px;padding:7px 6px;text-align:center">
-          <div id="cramStreak" style="font-size:15px;font-weight:500;color:#f59e0b">🔥 0</div>
-          <div style="font-size:9px;color:#555;margin-top:2px">day streak</div>
-        </div>
-        <div style="background:#1a1a1a;border-radius:8px;padding:7px 6px;text-align:center">
-          <div id="cramTotalTime" style="font-size:15px;font-weight:500;color:#a78bfa">0h</div>
-          <div style="font-size:9px;color:#555;margin-top:2px">total</div>
-        </div>
-      </div>
-
-      <!-- Controls -->
-      <div style="display:flex;gap:6px">
-        <button onclick="cramPauseResume()" id="cramPauseBtn" style="flex:1;background:#1a1a1a;border:1px solid #2a2a2a;color:#aaa;padding:6px;border-radius:8px;cursor:pointer;font-size:11px;font-family:inherit">⏸ Pause</button>
-        <button onclick="endCramMode()" style="flex:1;background:#1a1010;border:1px solid #3a1a1a;color:#f87171;padding:6px;border-radius:8px;cursor:pointer;font-size:11px;font-family:inherit">✕ End</button>
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="closeOv('cramModeModal')">Cancel</button>
+        <button class="btn-ok" onclick="launchCramMode()">🚀 Start session</button>
       </div>
     </div>
   </div>
-</div>
 
+  <!-- Floating Cram HUD -->
+  <div id="cramHUD" style="display:none;position:fixed;bottom:28px;right:24px;z-index:9999;font-family:'Plus Jakarta Sans',sans-serif;user-select:none">
+    <div id="cramHUDInner" style="background:#0f0f0f;border:1px solid #2a2a2a;border-radius:16px;padding:14px 16px;min-width:200px;box-shadow:0 8px 40px rgba(0,0,0,.5)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <span id="cramHUDLabel" style="font-size:11px;color:#555;font-weight:600;text-transform:uppercase;letter-spacing:.6px">Cram</span>
+        <div style="display:flex;gap:6px;align-items:center">
+          <span id="cramTabBadge" style="display:none;font-size:10px;background:#2a1010;color:#f87171;border:1px solid #4a1a1a;padding:2px 7px;border-radius:999px">⚠ <span id="cramTabNum">0</span> switch</span>
+          <button onclick="toggleHUDCollapse()" id="cramCollapseBtn" style="background:none;border:none;color:#555;cursor:pointer;font-size:16px;line-height:1;padding:0">−</button>
+          <button onclick="endCramMode()" style="background:none;border:none;color:#555;cursor:pointer;font-size:13px;line-height:1;padding:0" title="End session">✕</button>
+        </div>
+      </div>
+      <div id="cramHUDBody">
+        <div style="text-align:center;margin-bottom:10px">
+          <div id="cramTimerDisplay" style="font-size:40px;font-weight:200;color:#fff;font-variant-numeric:tabular-nums;letter-spacing:-1px;line-height:1">25:00</div>
+          <div style="font-size:10px;color:#444;margin-top:2px">remaining</div>
+        </div>
+        <div style="height:3px;background:#1a1a1a;border-radius:2px;overflow:hidden;margin-bottom:12px">
+          <div id="cramProgressBar" style="height:100%;background:#3b82f6;width:0%;transition:width 1s linear"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px">
+          <div style="background:#1a1a1a;border-radius:8px;padding:7px 6px;text-align:center">
+            <div id="cramTimeSpent" style="font-size:15px;font-weight:500;color:#fff">0m</div>
+            <div style="font-size:9px;color:#555;margin-top:2px">spent</div>
+          </div>
+          <div style="background:#1a1a1a;border-radius:8px;padding:7px 6px;text-align:center">
+            <div id="cramStreak" style="font-size:15px;font-weight:500;color:#f59e0b">🔥 0</div>
+            <div style="font-size:9px;color:#555;margin-top:2px">day streak</div>
+          </div>
+          <div style="background:#1a1a1a;border-radius:8px;padding:7px 6px;text-align:center">
+            <div id="cramTotalTime" style="font-size:15px;font-weight:500;color:#a78bfa">0h</div>
+            <div style="font-size:9px;color:#555;margin-top:2px">total</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button onclick="cramPauseResume()" id="cramPauseBtn" style="flex:1;background:#1a1a1a;border:1px solid #2a2a2a;color:#aaa;padding:6px;border-radius:8px;cursor:pointer;font-size:11px;font-family:inherit">⏸ Pause</button>
+          <button onclick="endCramMode()" style="flex:1;background:#1a1010;border:1px solid #3a1a1a;color:#f87171;padding:6px;border-radius:8px;cursor:pointer;font-size:11px;font-family:inherit">✕ End</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <input type="file" id="imgInput" accept="image/*" style="display:none" onchange="handleImgFile(this)" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <script src="/js/main.js">
+  <script src="/js/main.js"></script>
+
+  <script>
+    /* ── Fade out the page veil once DOMContentLoaded ── */
+    document.addEventListener('DOMContentLoaded', () => {
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          document.getElementById('pageVeil').classList.add('out');
+          // Remove from DOM after transition so it can't block pointer events
+          setTimeout(() => {
+            const v = document.getElementById('pageVeil');
+            if (v) v.remove();
+          }, 600);
+        }, 60);
+      });
+    });
   </script>
 </body>
-
 </html>

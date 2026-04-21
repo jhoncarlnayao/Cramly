@@ -804,8 +804,347 @@ function endCramMode() {
   showToast('Cram session ended.');
 }
 
+/* ══ LOCALSTORAGE ══ */
+function saveLSState() {
+  try {
+    const els = [];
+    document.querySelectorAll('.cel').forEach(el => {
+      els.push({
+        id: el.dataset.elId,
+        deckId: el.dataset.deckId || '',
+        left: el.style.left,
+        top: el.style.top,
+        width: el.style.width,
+        height: el.style.height,
+        zIndex: el.style.zIndex,
+        html: el.outerHTML
+      });
+    });
+
+    const grpData = groups.map(g => ({
+      id: g.id,
+      elIds: g.elIds,
+      left: g.wrap.style.left,
+      top: g.wrap.style.top,
+      width: g.wrap.style.width,
+      height: g.wrap.style.height,
+      label: g.wrap.querySelector('.group-label')?.textContent || ''
+    }));
+
+    const connData = connections.map(c => ({
+      id: c.id,
+      fromId: c.from?.dataset?.elId,
+      toId: c.to?.dataset?.elId,
+      label: c.label || '',
+      style: c.style || 'solid',
+      color: c.color || '#555'
+    })).filter(c => c.fromId && c.toId);
+
+    localStorage.setItem('cramly_v4', JSON.stringify({
+      decks,
+      bookmarks,
+      darkMode,
+      snapMode,
+      cam,
+      els,
+      grpData,
+      connData,
+      drawStrokes,
+      elCtr,
+      elZ,
+      groupCtr,
+      connIdCtr
+    }));
+  } catch(e) {
+    console.warn('Save failed:', e);
+  }
+}
+
+function loadLSState() {
+  try {
+    const d = JSON.parse(localStorage.getItem('cramly_v4') || '{}');
+
+    // Restore counters first
+    if (d.elCtr) elCtr = d.elCtr;
+    if (d.elZ) elZ = d.elZ;
+    if (d.groupCtr) groupCtr = d.groupCtr;
+    if (d.connIdCtr) connIdCtr = d.connIdCtr;
+
+    // Restore camera
+    if (d.cam) { cam = d.cam; applyCamera(); }
+
+    // Restore dark/snap
+    if (d.darkMode) {
+      darkMode = true;
+      document.body.classList.add('dark');
+      document.getElementById('darkBtn').classList.add('active');
+    }
+    if (d.snapMode) {
+      snapMode = true;
+      document.getElementById('snapBtn').classList.add('active');
+    }
+
+    // Restore decks data (no canvas cards yet — those come from els)
+    if (d.decks) decks = d.decks;
+
+    // Restore canvas elements
+    if (d.els && d.els.length) {
+      d.els.forEach(e => {
+        const tmp = document.createElement('div');
+        tmp.innerHTML = e.html;
+        const cel = tmp.firstChild;
+        if (!cel) return;
+        world.appendChild(cel);
+        makeDraggable(cel);
+        const rh = cel.querySelector('.resize-h');
+        if (rh) makeResizable(cel, rh);
+        cel.addEventListener('mousedown', () => { if (!connectMode) selectEl(cel); });
+        cel.addEventListener('click', handleConnectClick.bind(null, cel));
+      });
+    }
+
+    // Restore groups
+    if (d.grpData && d.grpData.length) {
+      d.grpData.forEach(g => {
+        const gWrap = document.createElement('div');
+        gWrap.className = 'group-wrap';
+        gWrap.dataset.groupId = g.id;
+        gWrap.style.cssText = `left:${g.left};top:${g.top};width:${g.width};height:${g.height};z-index:${elZ - 1}`;
+
+        const lbl = document.createElement('div');
+        lbl.className = 'group-label';
+        lbl.contentEditable = 'true';
+        lbl.textContent = g.label || ('Group ' + g.id.replace('grp-', ''));
+        lbl.onclick = e => e.stopPropagation();
+        lbl.addEventListener('mousedown', e => e.stopPropagation());
+
+        const delBtn = document.createElement('button');
+        delBtn.className = 'group-del';
+        delBtn.textContent = '✕';
+        delBtn.title = 'Ungroup';
+        delBtn.onclick = e => { e.stopPropagation(); ungroupById(g.id); };
+
+        gWrap.appendChild(lbl);
+        gWrap.appendChild(delBtn);
+        gWrap.dataset.elIds = JSON.stringify(g.elIds);
+        groups.push({ id: g.id, elIds: g.elIds, wrap: gWrap });
+        world.appendChild(gWrap);
+        makeGroupDraggable(gWrap, g.elIds);
+      });
+    }
+
+    // Restore connections
+    if (d.connData && d.connData.length) {
+      d.connData.forEach(c => {
+        const from = document.querySelector(`.cel[data-el-id="${c.fromId}"]`);
+        const to = document.querySelector(`.cel[data-el-id="${c.toId}"]`);
+        if (from && to) {
+          connections.push({ id: c.id, from, to, label: c.label || '', style: c.style || 'solid', color: c.color || '#555' });
+        }
+      });
+      redrawConnections();
+    }
+
+    // Restore drawings
+    if (d.drawStrokes && d.drawStrokes.length) {
+      drawStrokes = d.drawStrokes;
+      replayStrokes();
+    }
+
+    // Restore bookmarks
+    if (d.bookmarks) { bookmarks = d.bookmarks; renderBookmarkBar(); }
+
+    updateStats();
+    renderDeckPanel();
+
+  } catch(e) {
+    console.warn('Load failed:', e);
+  }
+}
 
 
+/* ══ FULL CANVAS EXPORT / IMPORT ══ */
+function exportFullCanvas() {
+  try {
+    const els = [];
+    document.querySelectorAll('.cel').forEach(el => {
+      els.push({
+        id: el.dataset.elId,
+        deckId: el.dataset.deckId || '',
+        left: el.style.left,
+        top: el.style.top,
+        width: el.style.width,
+        height: el.style.height,
+        zIndex: el.style.zIndex,
+        html: el.outerHTML
+      });
+    });
+
+    const grpData = groups.map(g => ({
+      id: g.id,
+      elIds: g.elIds,
+      left: g.wrap.style.left,
+      top: g.wrap.style.top,
+      width: g.wrap.style.width,
+      height: g.wrap.style.height,
+      label: g.wrap.querySelector('.group-label')?.textContent || ''
+    }));
+
+    const connData = connections.map(c => ({
+      id: c.id,
+      fromId: c.from?.dataset?.elId,
+      toId: c.to?.dataset?.elId,
+      label: c.label || '',
+      style: c.style || 'solid',
+      color: c.color || '#555'
+    })).filter(c => c.fromId && c.toId);
+
+    const backup = {
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      decks,
+      bookmarks,
+      darkMode,
+      snapMode,
+      cam,
+      els,
+      grpData,
+      connData,
+      drawStrokes,
+      elCtr,
+      elZ,
+      groupCtr,
+      connIdCtr
+    };
+
+    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    const date = new Date().toISOString().slice(0, 10);
+    a.href = URL.createObjectURL(blob);
+    a.download = `cramly-backup-${date}.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    showToast('Canvas backed up!');
+  } catch(e) {
+    showToast('Export failed: ' + e.message);
+  }
+}
+
+function importFullCanvas(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const d = JSON.parse(e.target.result);
+      if (!d.version) throw new Error('Invalid backup file');
+
+      if (!confirm('This will replace your entire current canvas. Continue?')) return;
+
+      // Clear current canvas
+      document.querySelectorAll('.cel').forEach(el => el.remove());
+      document.querySelectorAll('.group-wrap').forEach(g => g.remove());
+      groups = []; connections = [];
+      ctx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+      drawStrokes = [];
+
+      // Restore counters
+      if (d.elCtr) elCtr = d.elCtr;
+      if (d.elZ) elZ = d.elZ;
+      if (d.groupCtr) groupCtr = d.groupCtr;
+      if (d.connIdCtr) connIdCtr = d.connIdCtr;
+
+      // Restore decks data
+      if (d.decks) decks = d.decks;
+
+      // Restore camera
+      if (d.cam) { cam = d.cam; applyCamera(); }
+
+      // Restore dark/snap
+      if (d.darkMode !== darkMode) toggleDark();
+      if (d.snapMode !== undefined) {
+        snapMode = d.snapMode;
+        document.getElementById('snapBtn').classList.toggle('active', snapMode);
+      }
+
+      // Restore elements
+      if (d.els && d.els.length) {
+        d.els.forEach(el => {
+          const tmp = document.createElement('div');
+          tmp.innerHTML = el.html;
+          const cel = tmp.firstChild;
+          if (!cel) return;
+          world.appendChild(cel);
+          makeDraggable(cel);
+          const rh = cel.querySelector('.resize-h');
+          if (rh) makeResizable(cel, rh);
+          cel.addEventListener('mousedown', () => { if (!connectMode) selectEl(cel); });
+          cel.addEventListener('click', handleConnectClick.bind(null, cel));
+        });
+      }
+
+      // Restore groups
+      if (d.grpData && d.grpData.length) {
+        d.grpData.forEach(g => {
+          const gWrap = document.createElement('div');
+          gWrap.className = 'group-wrap';
+          gWrap.dataset.groupId = g.id;
+          gWrap.style.cssText = `left:${g.left};top:${g.top};width:${g.width};height:${g.height};z-index:${elZ - 1}`;
+
+          const lbl = document.createElement('div');
+          lbl.className = 'group-label';
+          lbl.contentEditable = 'true';
+          lbl.textContent = g.label || '';
+          lbl.onclick = ev => ev.stopPropagation();
+          lbl.addEventListener('mousedown', ev => ev.stopPropagation());
+
+          const delBtn = document.createElement('button');
+          delBtn.className = 'group-del';
+          delBtn.textContent = '✕';
+          delBtn.title = 'Ungroup';
+          delBtn.onclick = ev => { ev.stopPropagation(); ungroupById(g.id); };
+
+          gWrap.appendChild(lbl);
+          gWrap.appendChild(delBtn);
+          gWrap.dataset.elIds = JSON.stringify(g.elIds);
+          groups.push({ id: g.id, elIds: g.elIds, wrap: gWrap });
+          world.appendChild(gWrap);
+          makeGroupDraggable(gWrap, g.elIds);
+        });
+      }
+
+      // Restore connections
+      if (d.connData && d.connData.length) {
+        d.connData.forEach(c => {
+          const from = document.querySelector(`.cel[data-el-id="${c.fromId}"]`);
+          const to = document.querySelector(`.cel[data-el-id="${c.toId}"]`);
+          if (from && to) {
+            connections.push({ id: c.id, from, to, label: c.label || '', style: c.style || 'solid', color: c.color || '#555' });
+          }
+        });
+        redrawConnections();
+      }
+
+      // Restore drawings
+      if (d.drawStrokes && d.drawStrokes.length) {
+        drawStrokes = d.drawStrokes;
+        replayStrokes();
+      }
+
+      // Restore bookmarks
+      if (d.bookmarks) { bookmarks = d.bookmarks; renderBookmarkBar(); }
+
+      updateStats();
+      renderDeckPanel();
+      saveLSState();
+      showToast('Canvas restored from backup!');
+    } catch(err) {
+      showToast('Restore failed: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+  input.value = '';
+}
     /* ══ KEYBOARD ══ */
     document.addEventListener('keydown', e => {
       const a = document.activeElement, typing = a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA' || a.contentEditable === 'true');
@@ -852,5 +1191,13 @@ function endCramMode() {
     loadLSState();
     loadShareParam();
     captureState();
-    setInterval(saveLSState, 30000);
+    setInterval(saveLSState, 5000);
     setInterval(updateMinimap, 2000);
+
+
+
+
+
+
+
+    
