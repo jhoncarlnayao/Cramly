@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,600&display=swap" rel="stylesheet"/>
+<link rel="icon" href="logo.png" type="image/png">
+<title>Cramly — Sign In</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:       #fafaf8;
+  --grid-c:   #e8e8e4;
+  --card:     #ffffff;
+  --border:   #e2e2dc;
+  --border-h: #b8b8b0;
+  --text:     #0c0c0a;
+  --muted:    #8a8a82;
+  --muted-l:  #b8b8b0;
+  --pill:     999px;
+  --ease:     cubic-bezier(0.22,1,0.36,1);
+}
+
+html, body {
+  height: 100%;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.5;
+  overflow: hidden;
+}
+
+.auth-page {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ══ LEFT PANEL ══ */
+.left-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 36px 48px;
+  overflow: hidden;
+  border-right: 1px solid var(--border);
+  background: var(--bg);
+  background-image:
+    linear-gradient(var(--grid-c) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-c) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+.left-glow {
+  position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  background:
+    radial-gradient(ellipse 70% 55% at 30% 40%, rgba(255,255,255,0.82) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 40% at 80% 80%, rgba(232,232,228,0.45) 0%, transparent 60%);
+}
+
+/* Orbiting rings */
+.orb-wrap {
+  position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  display: flex; align-items: center; justify-content: center;
+}
+.orb {
+  position: absolute; border-radius: 50%;
+  border: 1px solid rgba(0,0,0,0.06);
+  animation: orbSpin linear infinite;
+}
+.orb::before {
+  content: ''; position: absolute;
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--border-h);
+  top: -2.5px; left: 50%; transform: translateX(-50%);
+}
+.orb-1 { width: 300px; height: 300px; animation-duration: 20s; }
+.orb-2 { width: 210px; height: 210px; animation-duration: 13s; animation-direction: reverse; }
+.orb-2::before { background: var(--muted-l); }
+.orb-3 { width: 410px; height: 410px; animation-duration: 30s; border-color: rgba(0,0,0,0.03); }
+.orb-3::before { display: none; }
+@keyframes orbSpin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+
+/* Floating flashcards */
+.float-cards { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+.f-card {
+  position: absolute;
+  background: rgba(255,255,255,0.75);
+  border: 1px solid var(--border);
+  border-radius: 12px; padding: 13px 15px;
+  box-shadow: 0 2px 14px rgba(0,0,0,0.05);
+  backdrop-filter: blur(4px);
+}
+.f-card-bar { height: 3px; border-radius: 3px; margin-bottom: 9px; }
+.f-card-line { height: 5px; border-radius: 3px; background: var(--grid-c); margin-bottom: 5px; }
+.f-card-line.s  { width: 55%; }
+.f-card-line.xs { width: 35%; }
+.f-card-tag {
+  display: inline-block; margin-top: 8px;
+  padding: 2px 8px; border-radius: 99px;
+  background: var(--bg); border: 1px solid var(--border);
+  font-size: 8.5px; font-weight: 600; letter-spacing: 0.5px; color: var(--muted);
+}
+.f-card:nth-child(1){width:138px;left:6%;top:18%;animation:fc1 5.5s ease-in-out infinite;}
+.f-card:nth-child(2){width:112px;right:7%;top:22%;animation:fc2 6.2s ease-in-out infinite 0.8s;}
+.f-card:nth-child(3){width:128px;left:10%;bottom:20%;animation:fc3 5.0s ease-in-out infinite 1.5s;}
+.f-card:nth-child(4){width:106px;right:12%;bottom:28%;animation:fc1 7.0s ease-in-out infinite 0.4s;}
+@keyframes fc1{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-9px) rotate(-2deg)}}
+@keyframes fc2{0%,100%{transform:translateY(0) rotate(2.5deg)}50%{transform:translateY(-8px) rotate(2.5deg)}}
+@keyframes fc3{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-11px) rotate(-1deg)}}
+
+/* Left text content */
+.left-top { position:relative;z-index:2; animation:fromTop 0.8s var(--ease) both; }
+@keyframes fromTop{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:none}}
+
+.left-logo { display:flex;align-items:center;gap:9px; }
+.left-logo-img { width:36px;height:36px;object-fit:contain; }
+.left-logo-name { font-family:'Lora',serif; font-size:17px;font-weight:600;letter-spacing:-.3px;color:var(--text); }
+
+.left-mid { position:relative;z-index:2; animation:fromBot 0.9s var(--ease) 0.1s both; }
+@keyframes fromBot{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+
+.left-eyebrow {
+  display:inline-flex;align-items:center;gap:7px;
+  background:rgba(255,255,255,0.85);border:1px solid var(--border);
+  border-radius:var(--pill);padding:5px 13px;
+  font-size:10.5px;font-weight:600;letter-spacing:.5px;
+  color:var(--muted);text-transform:uppercase;margin-bottom:20px;
+}
+.eyebrow-dot{width:5px;height:5px;border-radius:50%;background:#22c55e;}
+
+.left-headline {
+  font-family:'Lora',serif;
+  font-size:clamp(26px,2.6vw,36px);font-weight:600;
+  letter-spacing:-1px;line-height:1.15;color:var(--text);margin-bottom:14px;
+}
+.left-headline em{font-style:italic;color:var(--muted);}
+
+.left-sub {
+  font-size:13px;color:var(--muted);font-weight:300;
+  line-height:1.7;max-width:310px;margin-bottom:28px;
+}
+
+.left-quote {
+  background:var(--card);border:1px solid var(--border);
+  border-radius:14px;padding:16px 18px;
+  box-shadow:0 2px 12px rgba(0,0,0,0.04);position:relative;
+}
+.left-quote::before {
+  content:'\201C';font-family:'Lora',serif;font-size:36px;
+  color:var(--muted-l);position:absolute;top:5px;left:14px;line-height:1;
+}
+.left-quote-text {
+  font-size:12px;color:var(--muted);line-height:1.65;
+  font-style:italic;padding-left:8px;margin-bottom:10px;
+}
+.left-quote-author{display:flex;align-items:center;gap:8px;padding-left:8px;}
+.lqa-bar{width:18px;height:2px;border-radius:2px;background:var(--border-h);}
+.lqa-name{font-size:10px;color:var(--muted-l);font-weight:500;}
+
+.left-bot{position:relative;z-index:2;animation:fromBot 0.9s var(--ease) 0.18s both;}
+.left-stat{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:6px 13px;background:rgba(255,255,255,0.8);
+  border:1px solid var(--border);border-radius:var(--pill);
+  font-size:10.5px;color:var(--muted);
+}
+.stat-dot{width:5px;height:5px;border-radius:50%;background:#22c55e;box-shadow:0 0 5px #22c55e;}
+
+/* ══ RIGHT PANEL ══ */
+.right-panel {
+  display:flex;flex-direction:column;
+  justify-content:center;align-items:center;
+  padding:48px 56px;background:var(--card);
+  overflow-y:auto;position:relative;
+}
+.right-panel::before {
+  content:'';position:absolute;top:0;right:0;
+  width:200px;height:200px;pointer-events:none;
+  background:radial-gradient(circle at top right,rgba(232,232,228,0.5) 0%,transparent 70%);
+}
+.right-panel::after {
+  content:'';position:absolute;bottom:0;left:0;
+  width:160px;height:160px;pointer-events:none;
+  background:radial-gradient(circle at bottom left,rgba(232,232,228,0.35) 0%,transparent 70%);
+}
+
+.form-wrap{
+  width:100%;max-width:340px;
+  animation:formIn 0.85s var(--ease) 0.15s both;
+}
+@keyframes formIn{from{opacity:0;transform:translateX(18px)}to{opacity:1;transform:none}}
+
+/* Tab row */
+.tab-row{
+  display:flex;background:var(--bg);
+  border:1px solid var(--border);border-radius:12px;
+  padding:3px;margin-bottom:28px;position:relative;
+}
+.tab-pill{
+  position:absolute;top:3px;bottom:3px;left:3px;
+  width:calc(50% - 3px);
+  background:var(--card);border-radius:9px;
+  border:1px solid var(--border);
+  box-shadow:0 1px 4px rgba(0,0,0,0.06);
+  transition:transform 0.32s var(--ease);pointer-events:none;
+}
+.tab-pill.shifted{transform:translateX(100%);}
+.tab-btn{
+  flex:1;padding:9px 12px;
+  font-size:12px;font-weight:600;
+  font-family:'Plus Jakarta Sans',sans-serif;
+  background:none;border:none;cursor:pointer;
+  color:var(--muted);transition:color 0.22s;
+  position:relative;z-index:1;border-radius:9px;letter-spacing:-.1px;
+}
+.tab-btn.on{color:var(--text);}
+
+/* Form header */
+.form-title{font-family:'Lora',serif;font-size:24px;font-weight:600;letter-spacing:-.5px;color:var(--text);margin-bottom:4px;}
+.form-sub{font-size:12px;color:var(--muted);font-weight:300;margin-bottom:22px;line-height:1.55;}
+
+/* Social */
+.social-row{display:flex;gap:8px;margin-bottom:16px;}
+.social-btn{
+  flex:1;display:flex;align-items:center;justify-content:center;gap:7px;
+  padding:10px 12px;background:var(--bg);
+  border:1px solid var(--border);border-radius:10px;
+  font-size:12px;font-weight:500;font-family:'Plus Jakarta Sans',sans-serif;
+  color:var(--muted);cursor:pointer;
+  transition:border-color .18s,background .18s,color .18s,transform .15s,box-shadow .18s;
+}
+.social-btn:hover{border-color:var(--border-h);background:var(--card);color:var(--text);transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,0.06);}
+.social-btn svg{width:14px;height:14px;flex-shrink:0;}
+
+/* Divider */
+.divider{display:flex;align-items:center;gap:10px;margin:14px 0;}
+.divider-line{flex:1;height:1px;background:var(--border);}
+.divider-txt{font-size:10px;color:var(--muted-l);font-weight:500;letter-spacing:.2px;}
+
+/* Fields */
+.field{margin-bottom:11px;}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.flabel{
+  display:block;font-size:10px;font-weight:600;
+  letter-spacing:.7px;text-transform:uppercase;
+  color:var(--muted-l);margin-bottom:5px;transition:color .18s;
+}
+.field:focus-within .flabel{color:var(--muted);}
+
+.fi{
+  width:100%;background:var(--bg);
+  border:1px solid var(--border);border-radius:10px;
+  padding:10px 13px;font-size:12.5px;
+  font-family:'Plus Jakarta Sans',sans-serif;color:var(--text);
+  outline:none;-webkit-appearance:none;
+  transition:border-color .18s,background .18s,box-shadow .18s;
+}
+.fi::placeholder{color:var(--muted-l);}
+.fi:focus{border-color:var(--border-h);background:var(--card);box-shadow:0 0 0 3px rgba(0,0,0,0.04);}
+
+/* Password */
+.pw-wrap{position:relative;}
+.pw-wrap .fi{padding-right:40px;}
+.pw-toggle{
+  position:absolute;right:11px;top:50%;transform:translateY(-50%);
+  background:none;border:none;cursor:pointer;
+  color:var(--muted-l);display:flex;align-items:center;
+  transition:color .15s;padding:2px;
+}
+.pw-toggle:hover{color:var(--muted);}
+.pw-toggle svg{width:14px;height:14px;stroke:currentColor;stroke-width:1.8;fill:none;}
+
+/* Strength */
+.strength-bar{height:2px;border-radius:2px;background:var(--border);margin-top:6px;overflow:hidden;}
+.strength-fill{height:100%;border-radius:2px;width:0;transition:width .32s,background .32s;}
+.strength-hint{font-size:10px;color:var(--muted-l);margin-top:4px;height:13px;}
+
+/* Forgot */
+.forgot{text-align:right;margin-bottom:14px;margin-top:-3px;}
+.forgot a{font-size:11px;color:var(--muted-l);font-weight:500;cursor:pointer;text-decoration:none;transition:color .15s;}
+.forgot a:hover{color:var(--text);}
+
+/* Submit */
+.submit-btn{
+  width:100%;background:var(--text);color:#fff;
+  border:none;border-radius:10px;padding:13px;
+  font-size:13px;font-weight:600;
+  font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;
+  letter-spacing:-.1px;position:relative;overflow:hidden;
+  transition:background .18s,transform .15s,box-shadow .2s;margin-top:4px;
+}
+.submit-btn:hover{background:#2a2a24;transform:translateY(-1px);box-shadow:0 8px 24px rgba(0,0,0,0.14);}
+.submit-btn:active{transform:none;}
+.ripple{
+  position:absolute;border-radius:50%;
+  background:rgba(255,255,255,0.18);
+  transform:scale(0);animation:rippleOut .55s linear;pointer-events:none;
+}
+@keyframes rippleOut{to{transform:scale(4);opacity:0;}}
+
+/* Footer */
+.form-footer{text-align:center;margin-top:14px;font-size:11.5px;color:var(--muted-l);}
+.form-footer a{color:var(--muted);font-weight:600;cursor:pointer;text-decoration:none;transition:color .15s;}
+.form-footer a:hover{color:var(--text);}
+
+/* Checkbox */
+.check-row{display:flex;align-items:flex-start;gap:9px;margin-bottom:13px;cursor:pointer;}
+.check-box{
+  width:16px;height:16px;flex-shrink:0;
+  background:var(--bg);border:1px solid var(--border);
+  border-radius:5px;display:flex;align-items:center;justify-content:center;
+  margin-top:1px;transition:background .18s,border-color .18s;cursor:pointer;
+}
+.check-box.on{background:var(--text);border-color:var(--text);}
+.check-box svg{width:9px;height:9px;stroke:#fff;stroke-width:2.5;fill:none;opacity:0;transition:opacity .15s;}
+.check-box.on svg{opacity:1;}
+.check-label{font-size:11px;color:var(--muted);line-height:1.5;}
+.check-label a{color:var(--muted);text-decoration:underline;text-underline-offset:2px;}
+
+/* Back link */
+.back-link{
+  position:absolute;top:26px;left:26px;
+  display:flex;align-items:center;gap:6px;
+  font-size:11.5px;color:var(--muted-l);
+  text-decoration:none;cursor:pointer;
+  transition:color .15s,transform .18s;
+  animation:fromTop 0.8s var(--ease) both;
+}
+.back-link:hover{color:var(--text);transform:translateX(-2px);}
+.back-link svg{width:12px;height:12px;stroke:currentColor;stroke-width:2;fill:none;}
+
+/* View transitions */
+.form-view.hidden{display:none;}
+.form-view.leaving{animation:vLeave .25s var(--ease) both;}
+.form-view.entering{animation:vEnter .32s var(--ease) both;}
+@keyframes vLeave{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(-10px)}}
+@keyframes vEnter{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:none}}
+
+.form-view.entering .stagger{animation:fUp .35s var(--ease) both;}
+.form-view.entering .stagger:nth-child(1){animation-delay:.04s;}
+.form-view.entering .stagger:nth-child(2){animation-delay:.08s;}
+.form-view.entering .stagger:nth-child(3){animation-delay:.12s;}
+.form-view.entering .stagger:nth-child(4){animation-delay:.16s;}
+.form-view.entering .stagger:nth-child(5){animation-delay:.20s;}
+.form-view.entering .stagger:nth-child(6){animation-delay:.24s;}
+.form-view.entering .stagger:nth-child(7){animation-delay:.27s;}
+.form-view.entering .stagger:nth-child(8){animation-delay:.30s;}
+@keyframes fUp{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+
+.right-panel::-webkit-scrollbar{width:0;}
+
+@media(max-width:720px){
+  .auth-page{grid-template-columns:1fr;}
+  .left-panel{display:none;}
+  .right-panel{padding:40px 28px;background:var(--bg);}
+}
+</style>
+</head>
+<body>
+
+<div class="auth-page">
+
+  <!-- ════ LEFT ════ -->
+  <div class="left-panel">
+    <div class="left-glow"></div>
+    <div class="orb-wrap">
+      <div class="orb orb-1"></div>
+      <div class="orb orb-2"></div>
+      <div class="orb orb-3"></div>
+    </div>
+    <div class="float-cards">
+      <div class="f-card">
+        <div class="f-card-bar" style="background:#bfdbfe;width:60%"></div>
+        <div class="f-card-line"></div><div class="f-card-line s"></div>
+        <div class="f-card-tag">Biology</div>
+      </div>
+      <div class="f-card">
+        <div class="f-card-bar" style="background:#bbf7d0;width:45%"></div>
+        <div class="f-card-line"></div><div class="f-card-line xs"></div>
+        <div class="f-card-tag">History</div>
+      </div>
+      <div class="f-card">
+        <div class="f-card-bar" style="background:#fde68a;width:68%"></div>
+        <div class="f-card-line"></div><div class="f-card-line s"></div>
+        <div class="f-card-tag">Mathematics</div>
+      </div>
+      <div class="f-card">
+        <div class="f-card-bar" style="background:#ddd6fe;width:50%"></div>
+        <div class="f-card-line"></div><div class="f-card-line xs"></div>
+        <div class="f-card-tag">Physics</div>
+      </div>
+    </div>
+
+    <div class="left-top">
+      <div class="left-logo">
+        <img src="logo.png" alt="Cramly" class="left-logo-img">
+        <span class="left-logo-name">Cramly</span>
+      </div>
+    </div>
+
+    <div class="left-mid">
+      <div class="left-eyebrow"><div class="eyebrow-dot"></div>Your study space</div>
+      <div class="left-headline">A better way<br>to think. <em>And remember.</em></div>
+      <p class="left-sub">Flashcards, notes, and progress tracking — all in one quiet space designed to keep you consistent.</p>
+      <div class="left-quote">
+        <p class="left-quote-text">Cramly genuinely changed how I prepare for exams. Everything finally feels organized and under control.</p>
+        <div class="left-quote-author">
+          <div class="lqa-bar"></div>
+          <span class="lqa-name">Maria S. &nbsp;·&nbsp; Medical Student</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="left-bot">
+      <div class="left-stat"><div class="stat-dot"></div><span>12,000+ learners active</span></div>
+    </div>
+  </div>
+
+  <!-- ════ RIGHT ════ -->
+  <div class="right-panel">
+    <a class="back-link" href="intro.html">
+      <svg viewBox="0 0 14 14"><path d="M9 2L4 7l5 5"/></svg>
+      Back to home
+    </a>
+
+    <div class="form-wrap">
+      <div class="tab-row">
+        <div class="tab-pill" id="tabPill"></div>
+        <button class="tab-btn on" id="tabSI" onclick="switchTab('signin')">Sign in</button>
+        <button class="tab-btn"    id="tabSU" onclick="switchTab('signup')">Create account</button>
+      </div>
+
+      <!-- SIGN IN -->
+      <div id="signinView" class="form-view entering">
+        <div class="stagger">
+          <div class="form-title">Welcome back</div>
+          <div class="form-sub">Sign in to continue your studies.</div>
+        </div>
+        <div class="social-row stagger">
+          <button class="social-btn" type="button">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M20.28 12.2c0-.64-.06-1.25-.16-1.84H12v3.48h4.64a3.97 3.97 0 0 1-1.72 2.61v2.17h2.78c1.63-1.5 2.58-3.7 2.58-6.42z" fill="#4285F4"/><path d="M12 21c2.32 0 4.27-.77 5.7-2.08l-2.78-2.17c-.77.52-1.75.82-2.92.82-2.24 0-4.14-1.51-4.82-3.55H4.32v2.24A9 9 0 0 0 12 21z" fill="#34A853"/><path d="M7.18 14.02A5.4 5.4 0 0 1 6.9 12c0-.7.12-1.39.28-2.02V7.74H4.32A9 9 0 0 0 3 12c0 1.45.35 2.83.96 4.04l2.9-2.02z" fill="#FBBC05"/><path d="M12 6.46c1.26 0 2.39.43 3.28 1.28l2.46-2.46A8.96 8.96 0 0 0 12 3 9 9 0 0 0 4.32 7.74l2.86 2.24C7.86 7.97 9.76 6.46 12 6.46z" fill="#EA4335"/></svg>
+            Google
+          </button>
+          <button class="social-btn" type="button">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12c0 4.42 2.87 8.17 6.84 9.49.5.09.68-.22.68-.48v-1.7c-2.78.61-3.37-1.34-3.37-1.34-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.9 1.53 2.34 1.09 2.91.83.09-.65.35-1.09.64-1.34-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02A9.56 9.56 0 0 1 12 6.8c.85 0 1.71.11 2.51.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85v2.75c0 .27.18.58.69.48A10.01 10.01 0 0 0 22 12c0-5.52-4.48-10-10-10z"/></svg>
+            GitHub
+          </button>
+        </div>
+        <div class="divider stagger"><div class="divider-line"></div><span class="divider-txt">or continue with email</span><div class="divider-line"></div></div>
+        <div class="field stagger">
+          <label class="flabel">Email address</label>
+          <input class="fi" type="email" placeholder="you@example.com" autocomplete="email">
+        </div>
+        <div class="field stagger">
+          <label class="flabel">Password</label>
+          <div class="pw-wrap">
+            <input class="fi" type="password" id="siPw" placeholder="••••••••" autocomplete="current-password">
+            <button class="pw-toggle" type="button" onclick="togglePw('siPw',this)">
+              <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="forgot stagger"><a href="#">Forgot password?</a></div>
+        <button class="submit-btn stagger" type="button" onclick="ripple(event);setTimeout(()=>window.location.href='index.html',300)">Sign in →</button>
+        <div class="form-footer stagger">No account? <a onclick="switchTab('signup')">Create one free</a></div>
+      </div>
+
+      <!-- SIGN UP -->
+      <div id="signupView" class="form-view hidden">
+        <div class="stagger">
+          <div class="form-title">Get started free</div>
+          <div class="form-sub">Create your study space in seconds.</div>
+        </div>
+        <div class="social-row stagger">
+          <button class="social-btn" type="button">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M20.28 12.2c0-.64-.06-1.25-.16-1.84H12v3.48h4.64a3.97 3.97 0 0 1-1.72 2.61v2.17h2.78c1.63-1.5 2.58-3.7 2.58-6.42z" fill="#4285F4"/><path d="M12 21c2.32 0 4.27-.77 5.7-2.08l-2.78-2.17c-.77.52-1.75.82-2.92.82-2.24 0-4.14-1.51-4.82-3.55H4.32v2.24A9 9 0 0 0 12 21z" fill="#34A853"/><path d="M7.18 14.02A5.4 5.4 0 0 1 6.9 12c0-.7.12-1.39.28-2.02V7.74H4.32A9 9 0 0 0 3 12c0 1.45.35 2.83.96 4.04l2.9-2.02z" fill="#FBBC05"/><path d="M12 6.46c1.26 0 2.39.43 3.28 1.28l2.46-2.46A8.96 8.96 0 0 0 12 3 9 9 0 0 0 4.32 7.74l2.86 2.24C7.86 7.97 9.76 6.46 12 6.46z" fill="#EA4335"/></svg>
+            Google
+          </button>
+          <button class="social-btn" type="button">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12c0 4.42 2.87 8.17 6.84 9.49.5.09.68-.22.68-.48v-1.7c-2.78.61-3.37-1.34-3.37-1.34-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.9 1.53 2.34 1.09 2.91.83.09-.65.35-1.09.64-1.34-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02A9.56 9.56 0 0 1 12 6.8c.85 0 1.71.11 2.51.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85v2.75c0 .27.18.58.69.48A10.01 10.01 0 0 0 22 12c0-5.52-4.48-10-10-10z"/></svg>
+            GitHub
+          </button>
+        </div>
+        <div class="divider stagger"><div class="divider-line"></div><span class="divider-txt">or continue with email</span><div class="divider-line"></div></div>
+        <div class="field-row stagger">
+          <div class="field"><label class="flabel">First name</label><input class="fi" type="text" placeholder="Alex" autocomplete="given-name"></div>
+          <div class="field"><label class="flabel">Last name</label><input class="fi" type="text" placeholder="Reyes" autocomplete="family-name"></div>
+        </div>
+        <div class="field stagger">
+          <label class="flabel">Email address</label>
+          <input class="fi" type="email" placeholder="you@example.com" autocomplete="email">
+        </div>
+        <div class="field stagger">
+          <label class="flabel">Password</label>
+          <div class="pw-wrap">
+            <input class="fi" type="password" id="suPw" placeholder="Min. 8 characters" oninput="checkStrength(this)" autocomplete="new-password">
+            <button class="pw-toggle" type="button" onclick="togglePw('suPw',this)">
+              <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+          <div class="strength-bar"><div class="strength-fill" id="sBar"></div></div>
+          <div class="strength-hint" id="sHint"></div>
+        </div>
+        <div class="check-row stagger" onclick="toggleCheck(this)">
+          <div class="check-box"><svg viewBox="0 0 10 8"><polyline points="1,4 3.5,6.5 9,1"/></svg></div>
+          <span class="check-label">I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a></span>
+        </div>
+        <button class="submit-btn stagger" type="button" onclick="ripple(event);setTimeout(()=>window.location.href='index.html',300)">Create account →</button>
+        <div class="form-footer stagger">Already have an account? <a onclick="switchTab('signin')">Sign in</a></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let cur = 'signin';
+function switchTab(tab) {
+  if (tab === cur) return;
+  document.getElementById('tabPill').classList.toggle('shifted', tab === 'signup');
+  document.getElementById('tabSI').classList.toggle('on', tab === 'signin');
+  document.getElementById('tabSU').classList.toggle('on', tab === 'signup');
+  const out = tab === 'signup' ? document.getElementById('signinView') : document.getElementById('signupView');
+  const inn = tab === 'signup' ? document.getElementById('signupView') : document.getElementById('signinView');
+  out.classList.add('leaving');
+  setTimeout(() => {
+    out.classList.add('hidden'); out.classList.remove('leaving','entering');
+    inn.classList.remove('hidden'); void inn.offsetWidth;
+    inn.classList.add('entering');
+  }, 240);
+  cur = tab;
+}
+function togglePw(id, btn) {
+  const inp = document.getElementById(id);
+  inp.type = inp.type === 'text' ? 'password' : 'text';
+  btn.style.opacity = inp.type === 'text' ? '0.4' : '1';
+}
+function checkStrength(inp) {
+  const v = inp.value; let s = 0;
+  if (v.length >= 8) s++;
+  if (/[A-Z]/.test(v)) s++;
+  if (/[0-9]/.test(v)) s++;
+  if (/[^A-Za-z0-9]/.test(v)) s++;
+  const bar = document.getElementById('sBar'), hint = document.getElementById('sHint');
+  const w=['0%','25%','50%','75%','100%'], c=['','#ef4444','#f97316','#eab308','#22c55e'], l=['','Weak','Fair','Good','Strong'];
+  bar.style.width=w[s]; bar.style.background=c[s];
+  hint.textContent=v.length?l[s]:''; hint.style.color=c[s];
+}
+function toggleCheck(row) { row.querySelector('.check-box').classList.toggle('on'); }
+function ripple(e) {
+  const btn = e.currentTarget, r = document.createElement('span');
+  r.className = 'ripple';
+  const rect = btn.getBoundingClientRect(), size = Math.max(rect.width, rect.height);
+  r.style.cssText = `width:${size}px;height:${size}px;left:${e.clientX-rect.left-size/2}px;top:${e.clientY-rect.top-size/2}px`;
+  btn.appendChild(r); setTimeout(() => r.remove(), 600);
+}
+if (new URLSearchParams(window.location.search).get('tab') === 'signup') setTimeout(() => switchTab('signup'), 80);
+</script>
+</body>
+</html>

@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@100..900&family=Micro+5&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&family=Roboto:ital,wght@0,100..900;1,100..900&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
+<link rel="icon" href="logo.png" type="image/png">
+<link rel="stylesheet" href="css/intro.css"/>
+<title>Cramly</title>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════
+     LOADING SCREEN
+══════════════════════════════════════════════ -->
+<div id="loadingScreen">
+  <!-- Background layers -->
+  <div class="load-grid"></div>
+  <div class="load-glow"></div>
+  <div class="load-scan"></div>
+
+  <!-- Orbiting rings -->
+  <div class="load-ring"></div>
+  <div class="load-ring load-ring-2"></div>
+
+  <!-- Floating cards in background -->
+  <div class="load-cards" id="loadCards"></div>
+
+  <!-- Center content -->
+  <div class="load-center">
+    <div class="load-logo-mark">
+      <svg viewBox="0 0 16 16"><path d="M3 13L8 3l5 10M5.5 9h5"/></svg>
+    </div>
+    <div class="load-logo-text">Cramly</div>
+    <div class="load-tagline">Preparing your demo&hellip;</div>
+
+    <div class="load-bar-wrap">
+      <div class="load-bar-fill" id="loadBar"></div>
+    </div>
+    <div class="load-label" id="loadLabel">Initializing</div>
+
+    <div class="load-dots">
+      <div class="load-dot"></div>
+      <div class="load-dot"></div>
+      <div class="load-dot"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     INTRO PAGE
+══════════════════════════════════════════════ -->
+<div id="introPage">
+<div class="intro-nav">
+  <div class="logo">
+    <img src="logo.png" alt="Cramly Logo" class="logo-img">
+    <span>Cramly</span>
+  </div>
+  <button class="cta-secondary" onclick="startDemoLoading()">Sign in →</button>
+</div>
+
+  <div class="intro-body">
+    <div class="intro-eyebrow">
+      <div class="intro-eyebrow-dot"></div>
+      Introducing Cramly
+    </div>
+
+    <h1 class="intro-title">
+      A better way to think.<br><em>And remember.</em>
+    </h1>
+
+    <p class="intro-sub">
+      Cramly is a quiet space for your ideas, notes, and knowledge.
+      Everything you capture stays organized, connected, and ready when you need it.
+    </p>
+
+    <div class="intro-cta-row">
+      <button class="cta-main" onclick="openAuth('signup')">Get started</button>
+      <button class="cta-secondary" id="viewDemoBtn" onclick="startDemoLoading()">View Demo</button>
+    </div>
+
+    <div class="intro-cards-preview">
+      <div class="prev-card">
+        <div class="pc-bar" style="background:#d4d4d8"></div>
+        <div class="pc-icon">—</div>
+        <div class="pc-title">Notes</div>
+        <div class="pc-sub">Simple. Structured. Clear.</div>
+        <div class="pc-foot">
+          <span class="pc-tag">Capture</span>
+          <span class="pc-n">Always accessible</span>
+        </div>
+      </div>
+      <div class="prev-card">
+        <div class="pc-bar" style="background:#a1a1aa"></div>
+        <div class="pc-icon">—</div>
+        <div class="pc-title">Ideas</div>
+        <div class="pc-sub">From thought to clarity.</div>
+        <div class="pc-foot">
+          <span class="pc-tag">Organize</span>
+          <span class="pc-n">Connected thinking</span>
+        </div>
+      </div>
+      <div class="prev-card">
+        <div class="pc-bar" style="background:#71717a"></div>
+        <div class="pc-icon">—</div>
+        <div class="pc-title">Knowledge</div>
+        <div class="pc-sub">Built over time.</div>
+        <div class="pc-foot">
+          <span class="pc-tag">Grow</span>
+          <span class="pc-n">Long-term memory</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     AUTH MODAL
+══════════════════════════════════════════════ -->
+<div id="authOverlay" onclick="authOverlayClick(event)">
+  <div class="auth-modal">
+    <button class="auth-close" onclick="closeAuth()">
+      <svg viewBox="0 0 14 14"><path d="M1 1l12 12M13 1L1 13"/></svg>
+    </button>
+    <div class="auth-left">
+      <div class="auth-left-logo">
+        <div class="auth-left-mark">
+          <svg viewBox="0 0 16 16"><path d="M3 13L8 3l5 10M5.5 9h5"/></svg>
+        </div>
+        <span class="auth-left-name">Cramly</span>
+      </div>
+      <div class="auth-left-body">
+        <div class="auth-left-headline">Cram less.<br><em>Remember more.</em></div>
+        <p class="auth-left-tagline">Flashcards, notes, and progress tracking that actually keep you consistent.</p>
+      </div>
+      <div class="auth-left-dots">
+        <div class="auth-ldot on"></div>
+        <div class="auth-ldot"></div>
+        <div class="auth-ldot"></div>
+      </div>
+    </div>
+    <div class="auth-right">
+      <div class="auth-tabs">
+        <button class="auth-tab on" id="authTabSignin" onclick="authSwitchTab('signin')">Sign in</button>
+        <button class="auth-tab" id="authTabSignup" onclick="authSwitchTab('signup')">Create account</button>
+      </div>
+      <div id="authSigninView">
+        <div class="auth-form-title">Welcome back</div>
+        <div class="auth-form-sub">Sign in to continue studying.</div>
+        <div class="auth-social-row">
+          <button class="auth-social-btn">
+            <svg viewBox="0 0 24 24" fill="none" width="15" height="15">
+              <path d="M20.28 12.2c0-.64-.06-1.25-.16-1.84H12v3.48h4.64a3.97 3.97 0 0 1-1.72 2.61v2.17h2.78c1.63-1.5 2.58-3.7 2.58-6.42z" fill="#4285F4"/>
+              <path d="M12 21c2.32 0 4.27-.77 5.7-2.08l-2.78-2.17c-.77.52-1.75.82-2.92.82-2.24 0-4.14-1.51-4.82-3.55H4.32v2.24A9 9 0 0 0 12 21z" fill="#34A853"/>
+              <path d="M7.18 14.02A5.4 5.4 0 0 1 6.9 12c0-.7.12-1.39.28-2.02V7.74H4.32A9 9 0 0 0 3 12c0 1.45.35 2.83.96 4.04l2.9-2.02z" fill="#FBBC05"/>
+              <path d="M12 6.46c1.26 0 2.39.43 3.28 1.28l2.46-2.46A8.96 8.96 0 0 0 12 3 9 9 0 0 0 4.32 7.74l2.86 2.24C7.86 7.97 9.76 6.46 12 6.46z" fill="#EA4335"/>
+            </svg>
+            Google
+          </button>
+          <button class="auth-social-btn">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="15" height="15">
+              <path d="M12 2C6.48 2 2 6.48 2 12c0 4.42 2.87 8.17 6.84 9.49.5.09.68-.22.68-.48v-1.7c-2.78.61-3.37-1.34-3.37-1.34-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.9 1.53 2.34 1.09 2.91.83.09-.65.35-1.09.64-1.34-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02A9.56 9.56 0 0 1 12 6.8c.85 0 1.71.11 2.51.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85v2.75c0 .27.18.58.69.48A10.01 10.01 0 0 0 22 12c0-5.52-4.48-10-10-10z"/>
+            </svg>
+            GitHub
+          </button>
+        </div>
+        <div class="auth-divider">
+          <div class="auth-divider-line"></div>
+          <span class="auth-divider-txt">or</span>
+          <div class="auth-divider-line"></div>
+        </div>
+        <div class="auth-field">
+          <label class="auth-flabel">Email</label>
+          <input class="auth-fi" type="email" placeholder="you@example.com">
+        </div>
+        <div class="auth-field">
+          <label class="auth-flabel">Password</label>
+          <div class="auth-pw-wrap">
+            <input class="auth-fi" type="password" id="authSiPw" placeholder="••••••••">
+            <button class="auth-pw-toggle" onclick="authTogglePw('authSiPw',this)" type="button">
+              <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="auth-forgot"><a>Forgot password?</a></div>
+        <button class="auth-submit" onclick="startDemoLoading()">Sign in →</button>
+        <div class="auth-footer-txt">No account? <a onclick="authSwitchTab('signup')">Create one free</a></div>
+      </div>
+      <div id="authSignupView" style="display:none;">
+        <div class="auth-form-title">Get started free</div>
+        <div class="auth-form-sub">Create your study space in seconds.</div>
+        <div class="auth-social-row">
+          <button class="auth-social-btn">
+            <svg viewBox="0 0 24 24" fill="none" width="15" height="15">
+              <path d="M20.28 12.2c0-.64-.06-1.25-.16-1.84H12v3.48h4.64a3.97 3.97 0 0 1-1.72 2.61v2.17h2.78c1.63-1.5 2.58-3.7 2.58-6.42z" fill="#4285F4"/>
+              <path d="M12 21c2.32 0 4.27-.77 5.7-2.08l-2.78-2.17c-.77.52-1.75.82-2.92.82-2.24 0-4.14-1.51-4.82-3.55H4.32v2.24A9 9 0 0 0 12 21z" fill="#34A853"/>
+              <path d="M7.18 14.02A5.4 5.4 0 0 1 6.9 12c0-.7.12-1.39.28-2.02V7.74H4.32A9 9 0 0 0 3 12c0 1.45.35 2.83.96 4.04l2.9-2.02z" fill="#FBBC05"/>
+              <path d="M12 6.46c1.26 0 2.39.43 3.28 1.28l2.46-2.46A8.96 8.96 0 0 0 12 3 9 9 0 0 0 4.32 7.74l2.86 2.24C7.86 7.97 9.76 6.46 12 6.46z" fill="#EA4335"/>
+            </svg>
+            Google
+          </button>
+          <button class="auth-social-btn">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="15" height="15">
+              <path d="M12 2C6.48 2 2 6.48 2 12c0 4.42 2.87 8.17 6.84 9.49.5.09.68-.22.68-.48v-1.7c-2.78.61-3.37-1.34-3.37-1.34-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.9 1.53 2.34 1.09 2.91.83.09-.65.35-1.09.64-1.34-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02A9.56 9.56 0 0 1 12 6.8c.85 0 1.71.11 2.51.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85v2.75c0 .27.18.58.69.48A10.01 10.01 0 0 0 22 12c0-5.52-4.48-10-10-10z"/>
+            </svg>
+            GitHub
+          </button>
+        </div>
+        <div class="auth-divider">
+          <div class="auth-divider-line"></div>
+          <span class="auth-divider-txt">or</span>
+          <div class="auth-divider-line"></div>
+        </div>
+        <div class="auth-field-row">
+          <div class="auth-field">
+            <label class="auth-flabel">First name</label>
+            <input class="auth-fi" type="text" placeholder="Alex">
+          </div>
+          <div class="auth-field">
+            <label class="auth-flabel">Last name</label>
+            <input class="auth-fi" type="text" placeholder="Reyes">
+          </div>
+        </div>
+        <div class="auth-field">
+          <label class="auth-flabel">Email</label>
+          <input class="auth-fi" type="email" placeholder="you@example.com">
+        </div>
+        <div class="auth-field">
+          <label class="auth-flabel">Password</label>
+          <div class="auth-pw-wrap">
+            <input class="auth-fi" type="password" id="authSuPw" placeholder="Min. 8 characters" oninput="authCheckStrength(this)">
+            <button class="auth-pw-toggle" onclick="authTogglePw('authSuPw',this)" type="button">
+              <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+          <div class="auth-strength-bar"><div class="auth-strength-fill" id="authSbar"></div></div>
+          <div class="auth-strength-hint" id="authShint"></div>
+        </div>
+        <button class="auth-submit" onclick="startDemoLoading()">Create account →</button>
+        <div class="auth-footer-txt">Already have an account? <a onclick="authSwitchTab('signin')">Sign in</a></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════
+   DEMO LOADING ANIMATION
+══════════════════════════════════════════════ */
+
+const loadSteps = [
+  { label: 'Initializing',         pct: 8  },
+  { label: 'Loading flashcards',   pct: 22 },
+  { label: 'Building your decks',  pct: 38 },
+  { label: 'Syncing notes',        pct: 54 },
+  { label: 'Setting up workspace', pct: 70 },
+  { label: 'Almost ready',         pct: 88 },
+  { label: 'Launching demo',       pct: 100},
+];
+
+function spawnFloatingCards() {
+  const container = document.getElementById('loadCards');
+  const cardConfigs = [
+    { left: '8%',  top: '20%', w: 130, delay: 0,   dur: 4.5 },
+    { left: '78%', top: '15%', w: 110, delay: 0.8, dur: 5.2 },
+    { left: '15%', top: '65%', w: 120, delay: 1.4, dur: 4.0 },
+    { left: '72%', top: '60%', w: 140, delay: 0.3, dur: 5.8 },
+    { left: '42%', top: '10%', w: 100, delay: 2.0, dur: 4.2 },
+    { left: '55%', top: '75%', w: 115, delay: 1.0, dur: 5.0 },
+  ];
+  const barColors = ['rgba(147,197,253,0.3)', 'rgba(134,239,172,0.3)', 'rgba(253,230,138,0.3)', 'rgba(196,181,253,0.3)'];
+  cardConfigs.forEach(cfg => {
+    const card = document.createElement('div');
+    card.className = 'load-card';
+    card.style.cssText = `left:${cfg.left};top:${cfg.top};width:${cfg.w}px;animation-duration:${cfg.dur}s;animation-delay:${cfg.delay}s;`;
+    const barColor = barColors[Math.floor(Math.random() * barColors.length)];
+    card.innerHTML = `
+      <div class="load-card-bar" style="background:${barColor};width:${40+Math.random()*40}%"></div>
+      <div class="load-card-line"></div>
+      <div class="load-card-line short"></div>
+      <div class="load-card-line" style="width:${50+Math.random()*30}%"></div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+function startDemoLoading() {
+  closeAuth();
+  const screen = document.getElementById('loadingScreen');
+  const bar = document.getElementById('loadBar');
+  const label = document.getElementById('loadLabel');
+
+  screen.classList.add('active');
+  spawnFloatingCards();
+
+  let stepIdx = 0;
+  let currentPct = 0;
+
+  function animateBar(targetPct, onDone) {
+    const step = () => {
+      if (currentPct < targetPct) {
+        currentPct = Math.min(currentPct + 1.2, targetPct);
+        bar.style.width = currentPct + '%';
+        requestAnimationFrame(step);
+      } else if (onDone) {
+        onDone();
+      }
+    };
+    requestAnimationFrame(step);
+  }
+
+  function runStep() {
+    if (stepIdx >= loadSteps.length) return;
+    const { label: lbl, pct } = loadSteps[stepIdx];
+    label.style.opacity = '0';
+    setTimeout(() => {
+      label.textContent = lbl;
+      label.style.opacity = '1';
+    }, 180);
+
+    animateBar(pct, () => {
+      stepIdx++;
+      if (stepIdx < loadSteps.length) {
+        setTimeout(runStep, 320);
+      } else {
+        // Done — exit animation then redirect
+        setTimeout(() => {
+          screen.classList.add('exit');
+          setTimeout(() => {
+            window.location.href = 'signin.html';
+          }, 700);
+        }, 400);
+      }
+    });
+  }
+
+  setTimeout(runStep, 400);
+}
+
+/* ══════════════════════════════════════════════
+   AUTH HELPERS
+══════════════════════════════════════════════ */
+function openAuth(tab) {
+  document.getElementById('authOverlay').classList.add('open');
+  authSwitchTab(tab || 'signin');
+}
+function closeAuth() {
+  document.getElementById('authOverlay').classList.remove('open');
+}
+function authOverlayClick(e) {
+  if (e.target === document.getElementById('authOverlay')) closeAuth();
+}
+// function authSwitchTab(t) {
+//   document.getElementById('authSigninView').style.display = t === 'signin' ? 'block' : 'none';
+//   document.getElementById('authSignupView').style.display = t === 'signup' ? 'block' : 'none';
+//   document.getElementById('authTabSignin').className = 'auth-tab' + (t === 'signin' ? ' on' : '');
+//   document.getElementById('authTabSignup').className = 'auth-tab' + (t === 'signup' ? ' on' : '');
+// }
+// function authTogglePw(id, btn) {
+//   var inp = document.getElementById(id);
+//   inp.type = inp.type === 'text' ? 'password' : 'text';
+//   btn.querySelector('svg').style.opacity = inp.type === 'text' ? '0.45' : '1';
+// }
+// function authCheckStrength(inp) {
+//   var v = inp.value, score = 0;
+//   if (v.length >= 8) score++;
+//   if (/[A-Z]/.test(v)) score++;
+//   if (/[0-9]/.test(v)) score++;
+//   if (/[^A-Za-z0-9]/.test(v)) score++;
+//   var bar = document.getElementById('authSbar');
+//   var hint = document.getElementById('authShint');
+//   var widths = [0,25,50,75,100];
+//   var colors = ['','#ef4444','#f97316','#eab308','#22c55e'];
+//   var labels = ['','Weak','Fair','Good','Strong'];
+//   bar.style.width = widths[score] + '%';
+//   bar.style.background = colors[score];
+//   hint.textContent = v.length ? labels[score] : '';
+//   hint.style.color = colors[score];
+// }
+function goToApp() { startDemoLoading(); }
+</script>
+</body>
+</html>
