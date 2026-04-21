@@ -1,770 +1,273 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600&family=Lora:ital,wght@0,400;0,600;1,400&display=swap"
-    rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <title>Cramly</title>
-  <link rel="icon" href="logo.png" type="image/png">
-  <link rel="stylesheet" href="/css/main.css" />
-  <!-- ↓ Load animations — add load-animations.css to your /css/ folder -->
-  <link rel="stylesheet" href="/css/load-animations.css" />
-
-  <style>
-    /* ── Page veil: covers on arrival, fades out → seamless from intro ── */
-    #pageVeil {
-      position: fixed;
-      inset: 0;
-      z-index: 99999;
-      background: #0c0c0a;
-      pointer-events: none;
-      opacity: 1;
-      transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1);
-    }
-    #pageVeil.out {
-      opacity: 0;
-    }
-  </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet"/>
+<link rel="icon" href="logo.png" type="image/png">
+<link rel="stylesheet" href="css/intro.css"/>
+<title>Cramly</title>
+<style>
+  /* ── Seamless transition overlay ─────────────────────────
+     Sits on top of EVERYTHING. Fades out on page load so the
+     intro appears smoothly. Fades back in before redirect so
+     there's zero flash of the intro page on the way out.
+  ──────────────────────────────────────────────────────── */
+  #pageVeil {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;          /* above the loading screen */
+    background: #0c0c0a;
+    pointer-events: none;
+    transition: opacity 0.45s ease;
+    opacity: 1;              /* starts opaque — hides any FOUC */
+  }
+  #pageVeil.revealed {
+    opacity: 0;
+  }
+</style>
 </head>
-
 <body>
 
-<!-- Veil fades out on load, giving a smooth entry from the loading screen -->
+<!-- Page veil: covers the page on arrival, fades out once ready -->
 <div id="pageVeil"></div>
 
-  <div id="viewport">
-    <div id="world">
-      <canvas id="drawCanvas" width="8000" height="8000"></canvas>
-      <div id="groupSelect"></div>
-      <svg id="connSVG" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-            <polygon points="0 0,10 3.5,0 7" fill="#555" />
-          </marker>
-          <marker id="arrowhead-preview" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-            <polygon points="0 0,10 3.5,0 7" fill="#3b82f6" />
-          </marker>
-          <marker id="arrowhead-dashed" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-            <polygon points="0 0,10 3.5,0 7" fill="#888" />
-          </marker>
-        </defs>
-        <line id="connPreview" x1="0" y1="0" x2="0" y2="0" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="5,4"
-          marker-end="url(#arrowhead-preview)" style="display:none" />
-      </svg>
+<!-- ══════════════════════════════════════════════
+     LOADING SCREEN
+══════════════════════════════════════════════ -->
+<div id="loadingScreen">
+  <div class="load-grid"></div>
+  <div class="load-glow"></div>
+  <div class="load-scan"></div>
+  <div class="load-ring"></div>
+  <div class="load-ring load-ring-2"></div>
+  <div class="load-cards" id="loadCards"></div>
+
+  <div class="load-center">
+    <div class="load-logo-mark">
+      <svg viewBox="0 0 16 16"><path d="M3 13L8 3l5 10M5.5 9h5"/></svg>
+    </div>
+    <div class="load-logo-text">Cramly</div>
+    <div class="load-tagline">Preparing your demo&hellip;</div>
+
+    <div class="load-bar-wrap">
+      <div class="load-bar-fill" id="loadBar"></div>
+    </div>
+    <div class="load-label" id="loadLabel">Initializing</div>
+
+    <div class="load-dots">
+      <div class="load-dot"></div>
+      <div class="load-dot"></div>
+      <div class="load-dot"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     INTRO PAGE
+══════════════════════════════════════════════ -->
+<div id="introPage">
+  <div class="intro-nav">
+    <div class="logo">
+      <img src="logo.png" alt="Cramly Logo" class="logo-img">
+      <span>Cramly</span>
     </div>
   </div>
 
-  <div id="minimap" title="Click to navigate" onclick="minimapClick(event)">
-    <canvas id="minimapCanvas" width="160" height="100"></canvas>
-    <div id="minimapViewport"></div>
-  </div>
+  <div class="intro-body">
+    <div class="intro-eyebrow">
+      <div class="intro-eyebrow-dot"></div>
+      Introducing Cramly
+    </div>
 
-  <button id="dockToggle" onclick="toggleDock()" title="Toggle sidebar">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <rect x="3" y="3" width="18" height="18" rx="3" />
-      <line x1="9" y1="3" x2="9" y2="21" />
-    </svg>
-  </button>
+    <h1 class="intro-title">
+      A better way to think.<br><em>And remember.</em>
+    </h1>
 
-  <div id="undoRedo">
-    <button class="ur-btn" id="undoBtn" onclick="undo()" title="Undo (Ctrl+Z)" disabled>↩</button>
-    <button class="ur-btn" id="redoBtn" onclick="redo()" title="Redo (Ctrl+Y)" disabled>↪</button>
-  </div>
+    <p class="intro-sub">
+      Cramly is a quiet space for your ideas, notes, and knowledge.
+      Everything you capture stays organized, connected, and ready when you need it.
+    </p>
 
-  <!-- ═══ SIDE DOCK (compact — primary tools only) ═══ -->
-  <div id="sidedock">
-    <div class="sd-logo">C</div>
-    <div class="sd-sep"></div>
+    <div class="intro-cta-row">
+      <button class="cta-main" onclick="startDemoLoading()">Get started</button>
+      <button class="cta-secondary" onclick="startDemoLoading()">View Demo</button>
+    </div>
 
-    <button class="sd-btn primary" onclick="openOv('deckModal')" data-tip="New deck (⌘D)"><svg width="15" height="15"
-        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-        <line x1="12" y1="5" x2="12" y2="19" />
-        <line x1="5" y1="12" x2="19" y2="12" />
-      </svg></button>
-    <button class="sd-btn" onclick="openOv('noteModal')" data-tip="Quick note (⌘N)"><svg width="15" height="15"
-        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <rect x="3" y="3" width="18" height="18" rx="3" />
-        <line x1="7" y1="8" x2="17" y2="8" />
-        <line x1="7" y1="12" x2="14" y2="12" />
-        <line x1="7" y1="16" x2="11" y2="16" />
-      </svg></button>
-    <div class="sd-sep"></div>
-    <button class="sd-btn" onclick="addTextBox()" data-tip="Text (T)"><svg width="15" height="15" viewBox="0 0 24 24"
-        fill="none" stroke="currentColor" stroke-width="2">
-        <polyline points="4 7 4 4 20 4 20 7" />
-        <line x1="9" y1="20" x2="15" y2="20" />
-        <line x1="12" y1="4" x2="12" y2="20" />
-      </svg></button>
-    <button class="sd-btn" id="shapeDocBtn" onclick="toggleShapePicker(event)" data-tip="Shape (S)"><svg width="15"
-        height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="12" cy="12" r="4" />
-        <rect x="2" y="15" width="6" height="6" rx="1" />
-        <polygon points="22 2 15 22 11 13 2 9" />
-      </svg></button>
-    <button class="sd-btn" onclick="triggerImg()" data-tip="Image (I)"><svg width="15" height="15" viewBox="0 0 24 24"
-        fill="none" stroke="currentColor" stroke-width="2">
-        <rect x="3" y="3" width="18" height="18" rx="3" />
-        <circle cx="8.5" cy="8.5" r="1.5" />
-        <polyline points="21 15 16 10 5 21" />
-      </svg></button>
-    <button class="sd-btn" id="connectBtn" onclick="toggleConnectMode()" data-tip="Connect (A)"><svg width="15"
-        height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="6" cy="12" r="3" />
-        <circle cx="18" cy="6" r="3" />
-        <circle cx="18" cy="18" r="3" />
-        <line x1="9" y1="12" x2="15" y2="7.5" />
-        <line x1="9" y1="12" x2="15" y2="16.5" />
-      </svg></button>
-    <button class="sd-btn" onclick="startCramMode()" data-tip="Cram mode (⌘E)">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="12" cy="12" r="10"/>
-        <polyline points="12 6 12 12 16 14"/>
-      </svg>
-    </button>
-    <button class="sd-btn" id="drawBtn" onclick="toggleDrawMode()" data-tip="Draw (P)"><svg width="15" height="15"
-        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M12 20h9" />
-        <path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
-      </svg></button>
-    <div class="sd-sep"></div>
-    <button class="sd-btn" onclick="toggleDecks()" data-tip="Decks (D)"><svg width="15" height="15" viewBox="0 0 24 24"
-        fill="none" stroke="currentColor" stroke-width="2">
-        <rect x="2" y="7" width="20" height="14" rx="2" />
-        <path d="M16 3H8a2 2 0 00-2 2v2h12V5a2 2 0 00-2-2z" />
-      </svg></button>
-    <button class="sd-btn" onclick="openSearchBar()" data-tip="Search (/)"><svg width="15" height="15"
-        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="11" cy="11" r="8" />
-        <line x1="21" y1="21" x2="16.65" y2="16.65" />
-      </svg></button>
-    <button class="sd-btn" id="moreBtn" onclick="toggleMorePanel(event)" data-tip="More tools"><svg width="15"
-        height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="12" cy="5" r="1.5" fill="currentColor" />
-        <circle cx="12" cy="12" r="1.5" fill="currentColor" />
-        <circle cx="12" cy="19" r="1.5" fill="currentColor" />
-      </svg></button>
-  </div>
-
-  <!-- ═══ MORE PANEL FLYOUT ═══ -->
-  <div id="morePanel" class="hidden">
-    <button class="sd-btn" onclick="shareCanvas();closeMorePanel()" data-tip="Share canvas">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="18" cy="5" r="3" />
-        <circle cx="6" cy="12" r="3" />
-        <circle cx="18" cy="19" r="3" />
-        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
-        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
-      </svg>
-    </button>
-    <button class="sd-btn" onclick="dropCat();closeMorePanel()" data-tip="Drop a cat (C)"><svg width="15" height="15"
-        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10" />
-        <path d="M16 2l2 4-2 2M8 2L6 6l2 2" />
-        <circle cx="9" cy="13" r="1" />
-        <circle cx="15" cy="13" r="1" />
-        <path d="M9.5 17a3 3 0 005 0" />
-      </svg></button>
-    <button class="sd-btn" onclick="openOv('memeModal');loadMemeCat();closeMorePanel()" data-tip="Meme it (M)"><svg
-        width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="12" cy="12" r="10" />
-        <path d="M8 14s1.5 2 4 2 4-2 4-2" />
-        <line x1="9" y1="9" x2="9.01" y2="9" />
-        <line x1="15" y1="9" x2="15.01" y2="9" />
-      </svg></button>
-    <button class="sd-btn" id="stickerBtn" onclick="toggleStickerPanel(event)" data-tip="Stickers (K)"><svg width="15"
-        height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M12 2a10 10 0 0110 10c0 5.52-4.48 10-10 10A10 10 0 012 12 10 10 0 0112 2" />
-        <path
-          d="M8.56 2.75c4.37 6.03 6.02 9.42 8.03 17.72m2.54-15.38c-3.72 4.35-8.94 5.66-16.88 5.85m19.5 1.9c-3.5-.93-6.63-.82-8.94 0-2.58.92-5.01 2.86-7.44 6.32" />
-      </svg></button>
-    <button class="sd-btn" id="flowBtn" onclick="toggleFlowPanel(event)" data-tip="Flowchart (F)"><svg width="15"
-        height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <rect x="8" y="2" width="8" height="5" rx="1" />
-        <rect x="8" y="17" width="8" height="5" rx="1" />
-        <polygon points="12 10 17 13.5 12 17 7 13.5" />
-        <line x1="12" y1="7" x2="12" y2="10" />
-        <line x1="12" y1="17" x2="12" y2="19.5" />
-      </svg></button>
-    <div class="sd-sep"></div>
-    <button class="sd-btn" id="lassoBtn" onclick="toggleLasso();closeMorePanel()" data-tip="Lasso select (L)"><svg
-        width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M7 3C4 3 2 5 2 7c0 3 3 4 5 4s3-1 3-3 2-4 4-4c3 0 5 2 5 5 0 4-3 7-7 7-2 0-4-1-4-3" />
-        <path d="M5 20l2-4 4 4-2-7" />
-      </svg></button>
-    <button class="sd-btn" id="groupBtn" onclick="groupSelected();closeMorePanel()" data-tip="Group selected (G)"><svg
-        width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <rect x="2" y="2" width="8" height="8" rx="1" />
-        <rect x="14" y="2" width="8" height="8" rx="1" />
-        <rect x="2" y="14" width="8" height="8" rx="1" />
-        <rect x="14" y="14" width="8" height="8" rx="1" />
-        <rect x="5" y="5" width="14" height="14" rx="2" stroke-dasharray="3,2" />
-      </svg></button>
-    <button class="sd-btn" onclick="saveBookmark();closeMorePanel()" data-tip="Bookmark (B)"><svg width="15" height="15"
-        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" />
-      </svg></button>
-    <button class="sd-btn" onclick="takeScreenshot();closeMorePanel()" data-tip="Screenshot"><svg width="15" height="15"
-        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" />
-        <circle cx="12" cy="13" r="4" />
-      </svg></button>
-    <button class="sd-btn" onclick="autoLayout();closeMorePanel()" data-tip="Auto-arrange"><svg width="15" height="15"
-        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <rect x="3" y="3" width="7" height="7" />
-        <rect x="14" y="3" width="7" height="7" />
-        <rect x="3" y="14" width="7" height="7" />
-        <rect x="14" y="14" width="7" height="7" />
-      </svg></button>
-    <div class="sd-sep"></div>
-    <button class="sd-btn" onclick="toggleKb();closeMorePanel()" data-tip="Shortcuts (?)"><svg width="15" height="15"
-        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <rect x="2" y="6" width="20" height="13" rx="2" />
-        <line x1="6" y1="10" x2="6.01" y2="10" />
-        <line x1="10" y1="10" x2="10.01" y2="10" />
-        <line x1="14" y1="10" x2="14.01" y2="10" />
-        <line x1="18" y1="10" x2="18.01" y2="10" />
-        <line x1="8" y1="14" x2="16" y2="14" />
-      </svg></button>
-    <button class="sd-btn" id="darkBtn" onclick="toggleDark()" data-tip="Dark mode"><svg width="15" height="15"
-        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
-      </svg></button>
-  </div>
-
-  <div id="topbar">
-    <button class="tb-btn" id="panBtn" onclick="togglePan()"><i class="fa-solid fa-hand"></i> Pan</button>
-    <div class="tb-sep"></div>
-    <button class="tb-btn" id="snapBtn" onclick="toggleSnap()" title="Snap to grid">⊞ Snap</button>
-    <div class="tb-sep"></div>
-    <div id="drawColorRow">
-      <span class="palette-tip" style="font-weight:700;color:#7c3aed">✏️</span>
-      <div class="draw-swatch on" style="background:#111" data-dc="#111" onclick="pickDrawColor(this)"></div>
-      <div class="draw-swatch" style="background:#ef4444" data-dc="#ef4444" onclick="pickDrawColor(this)"></div>
-      <div class="draw-swatch" style="background:#3b82f6" data-dc="#3b82f6" onclick="pickDrawColor(this)"></div>
-      <div class="draw-swatch" style="background:#22c55e" data-dc="#22c55e" onclick="pickDrawColor(this)"></div>
-      <div class="draw-swatch" style="background:#f59e0b" data-dc="#f59e0b" onclick="pickDrawColor(this)"></div>
-      <div class="draw-swatch" style="background:#ec4899" data-dc="#ec4899" onclick="pickDrawColor(this)"></div>
-      <div class="draw-swatch" style="background:#8b5cf6" data-dc="#8b5cf6" onclick="pickDrawColor(this)"></div>
-      <div class="draw-swatch" style="background:#fff;border:1px solid #ddd" data-dc="#fff"
-        onclick="pickDrawColor(this)"></div>
-      <input type="range" id="drawSizeSlider" min="1" max="30" value="2"
-        oninput="drawSize=parseInt(this.value);document.getElementById('drawSizeLbl').textContent=drawSize+'px'" />
-      <span id="drawSizeLbl" style="font-size:10px;color:#555;min-width:26px">2px</span>
-      <button onclick="undoDrawStroke()"
-        style="font-size:10px;padding:3px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface);cursor:pointer;color:#555"
-        title="Undo last stroke (Ctrl+Z)">↩ Undo</button>
-      <button onclick="clearDrawing()"
-        style="font-size:10px;padding:3px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface);cursor:pointer;color:#555">Clear</button>
-      <div class="tb-sep"></div>
-    </div>
-    <button class="tb-btn" onclick="zoomOut()"><i class="fa-solid fa-minus"></i></button>
-    <span class="zoom-lbl" id="zoomLbl">100%</span>
-    <button class="tb-btn" onclick="zoomIn()"><i class="fa-solid fa-plus"></i></button>
-    <button class="tb-btn" onclick="zoomReset()">↺</button>
-    <div class="tb-sep"></div>
-    <button class="tb-btn" onclick="exportFullCanvas()" title="Export full canvas backup">⬇ Backup</button>
-    <label class="tb-btn" style="cursor:pointer" title="Import full canvas backup">⬆ Restore<input type="file" accept=".json" style="display:none" onchange="importFullCanvas(this)" /></label>
-  </div>
-
-  <div id="bookmarkBar"></div>
-  <div id="searchBar">
-    <i class="fa-solid fa-magnifying-glass" style="font-size:12px;color:#9a9a9a"></i>
-    <input id="searchInput" placeholder="Search elements…" oninput="doSearch(this.value)"
-      onkeydown="if(event.key==='Escape')closeSearch()" />
-    <button onclick="closeSearch()"
-      style="background:none;border:none;cursor:pointer;color:#9a9a9a;font-size:12px">✕</button>
-  </div>
-  <div class="search-res" id="searchResults"></div>
-
-  <div id="miniStats">
-    <div class="stat-item">
-      <div class="stat-n" id="sDecks">0</div>
-      <div class="stat-l">decks</div>
-    </div>
-    <div class="stat-item">
-      <div class="stat-n" id="sCards">0</div>
-      <div class="stat-l">cards</div>
-    </div>
-    <div class="stat-item">
-      <div class="stat-n" id="sEls">0</div>
-      <div class="stat-l">items</div>
-    </div>
-    <div class="stat-item">
-      <div class="stat-n" id="sGroups">0</div>
-      <div class="stat-l">groups</div>
-    </div>
-  </div>
-
-  <div class="toast" id="toast"></div>
-  <div id="snapIndicator">Snapped to grid</div>
-
-  <div id="shapePicker">
-    <div class="spick" onclick="addShape('rect')">▭</div>
-    <div class="spick" onclick="addShape('circle')">○</div>
-    <div class="spick" onclick="addShape('arrow')">→</div>
-    <div class="spick" onclick="addShape('tri')">△</div>
-    <div class="spick" onclick="addShape('diamond')">◇</div>
-    <div class="spick" onclick="addShape('star')">☆</div>
-  </div>
-
-  <div id="stickerPanel">
-    <div class="sp-hd">
-      <div class="sp-title">🎨 Sticker Library</div><button class="sp-close" onclick="closeStickerPanel()">✕</button>
-    </div>
-    <div class="sp-cats" id="stickerCats"></div>
-    <div class="sticker-grid" id="stickerGrid"></div>
-  </div>
-
-  <div id="flowPanel">
-    <div class="fp-hd">
-      <div class="fp-title">Flowchart</div><button class="fp-close" onclick="closeFlowPanel()">✕</button>
-    </div>
-    <div class="fp-item" onclick="addFlowNode('process')"><svg width="36" height="22">
-        <rect x="1" y="1" width="34" height="20" rx="3" fill="#3b82f6" /><text x="18" y="15" text-anchor="middle"
-          font-size="9" fill="#fff" font-weight="600">Process</text>
-      </svg>
-      <div>
-        <div class="fp-label">Process</div>
-        <div class="fp-desc">Action / step</div>
-      </div>
-    </div>
-    <div class="fp-item" onclick="addFlowNode('decision')"><svg width="36" height="28">
-        <polygon points="18,1 35,14 18,27 1,14" fill="#f59e0b" /><text x="18" y="18" text-anchor="middle" font-size="8"
-          fill="#fff" font-weight="600">?</text>
-      </svg>
-      <div>
-        <div class="fp-label">Decision</div>
-        <div class="fp-desc">Yes / No branch</div>
-      </div>
-    </div>
-    <div class="fp-item" onclick="addFlowNode('terminal')"><svg width="36" height="22">
-        <rect x="1" y="1" width="34" height="20" rx="10" fill="#10b981" /><text x="18" y="15" text-anchor="middle"
-          font-size="8" fill="#fff" font-weight="600">Start/End</text>
-      </svg>
-      <div>
-        <div class="fp-label">Terminal</div>
-        <div class="fp-desc">Start or end</div>
-      </div>
-    </div>
-    <div class="fp-item" onclick="addFlowNode('data')"><svg width="36" height="22">
-        <polygon points="5,1 35,1 31,21 1,21" fill="#8b5cf6" /><text x="18" y="15" text-anchor="middle" font-size="9"
-          fill="#fff" font-weight="600">Data</text>
-      </svg>
-      <div>
-        <div class="fp-label">Data</div>
-        <div class="fp-desc">Input / output</div>
-      </div>
-    </div>
-    <div class="fp-item" onclick="addFlowNode('doc')"><svg width="36" height="24">
-        <path d="M1,1 H35 V18 Q27,24 18,18 Q9,12 1,18 Z" fill="#ec4899" /><text x="18" y="13" text-anchor="middle"
-          font-size="8" fill="#fff" font-weight="600">Doc</text>
-      </svg>
-      <div>
-        <div class="fp-label">Document</div>
-        <div class="fp-desc">Report / file</div>
-      </div>
-    </div>
-    <div class="fp-item" onclick="addFlowNode('delay')"><svg width="36" height="22">
-        <path d="M1,1 H26 Q35,11 26,21 H1 Q10,11 1,1 Z" fill="#6366f1" /><text x="16" y="15" text-anchor="middle"
-          font-size="9" fill="#fff" font-weight="600">Delay</text>
-      </svg>
-      <div>
-        <div class="fp-label">Delay</div>
-        <div class="fp-desc">Wait / pause</div>
-      </div>
-    </div>
-    <div class="fp-item" onclick="addFlowNode('db')"><svg width="36" height="24">
-        <ellipse cx="18" cy="5" rx="16" ry="5" fill="#14b8a6" />
-        <rect x="2" y="5" width="32" height="14" fill="#14b8a6" />
-        <ellipse cx="18" cy="19" rx="16" ry="5" fill="#0d9488" /><text x="18" y="15" text-anchor="middle" font-size="8"
-          fill="#fff" font-weight="600">DB</text>
-      </svg>
-      <div>
-        <div class="fp-label">Database</div>
-        <div class="fp-desc">Data store</div>
-      </div>
-    </div>
-  </div>
-
-  <div id="deckPanel">
-    <div class="dp-hd">
-      <div class="dp-title">Your decks</div><button class="dp-close" onclick="closePanel()">✕</button>
-    </div>
-    <input class="dp-search" placeholder="Search decks…" oninput="renderDeckPanel(this.value)" />
-    <div class="dp-filter">
-      <button class="chip on" onclick="doFilter('all',this)">All</button>
-      <button class="chip" onclick="doFilter('Math',this)">Math</button>
-      <button class="chip" onclick="doFilter('Science',this)">Science</button>
-      <button class="chip" onclick="doFilter('Language',this)">Language</button>
-      <button class="chip" onclick="doFilter('History',this)">History</button>
-      <button class="chip" onclick="doFilter('Other',this)">Other</button>
-    </div>
-    <div id="deckList"></div>
-    <div class="export-row">
-      <button class="btn-ok" style="flex:1;border-radius:10px" onclick="openOv('deckModal')">+ New deck</button>
-      <button class="btn-cancel" style="flex:1;border-radius:10px" onclick="exportDecks()">⬇ Export</button>
-      <label class="btn-cancel" style="flex:1;border-radius:10px;cursor:pointer;text-align:center;line-height:2">⬆
-        Import<input type="file" accept=".json" style="display:none" onchange="importDecks(this)" /></label>
-    </div>
-  </div>
-
-  <div id="kbPanel">
-    <div class="kb-hd">Shortcuts <button onclick="toggleKb()"
-        style="background:none;border:none;cursor:pointer;color:#9a9a9a;font-size:12px">✕</button></div>
-    <div class="kb-row"><span class="kb-d">Pan</span>
-      <div class="kb-keys"><span class="kbd">Space+drag</span></div>
-    </div>
-    <div class="kb-row"><span class="kb-d">Zoom</span>
-      <div class="kb-keys"><span class="kbd">Ctrl+scroll</span></div>
-    </div>
-    <div class="kb-row"><span class="kb-d">New deck</span>
-      <div class="kb-keys"><span class="kbd">⌘D</span></div>
-    </div>
-    <div class="kb-row"><span class="kb-d">Quick note</span>
-      <div class="kb-keys"><span class="kbd">⌘N</span></div>
-    </div>
-    <div class="kb-row"><span class="kb-d">Text</span>
-      <div class="kb-keys"><span class="kbd">T</span></div>
-    </div>
-    <div class="kb-row"><span class="kb-d">Shape</span>
-      <div class="kb-keys"><span class="kbd">S</span></div>
-    </div>
-    <div class="kb-row"><span class="kb-d">Image</span>
-      <div class="kb-keys"><span class="kbd">I</span></div>
-    </div>
-    <div class="kb-row"><span class="kb-d">Drop cat</span>
-      <div class="kb-keys"><span class="kbd">C</span></div>
-    </div>
-    <div class="kb-row"><span class="kb-d">Meme</span>
-      <div class="kb-keys"><span class="kbd">M</span></div>
-    </div>
-    <div class="kb-row"><span class="kb-d">Stickers</span>
-      <div class="kb-keys"><span class="kbd">K</span></div>
-    </div>
-    <div class="kb-row"><span class="kb-d">Flowchart</span>
-      <div class="kb-keys"><span class="kbd">F</span></div>
-    </div>
-    <div class="kb-row"><span class="kb-d">Connect</span>
-      <div class="kb-keys"><span class="kbd">A</span></div>
-    </div>
-    <div class="kb-row"><span class="kb-d">Draw</span>
-      <div class="kb-keys"><span class="kbd">P</span></div>
-    </div>
-    <div class="kb-row"><span class="kb-d">Draw undo stroke</span>
-      <div class="kb-keys"><span class="kbd">Ctrl+Z</span></div>
-    </div>
-    <div class="kb-row"><span class="kb-d">Lasso select</span>
-      <div class="kb-keys"><span class="kbd">L</span></div>
-    </div>
-    <div class="kb-row"><span class="kb-d">Group selected</span>
-      <div class="kb-keys"><span class="kbd">G</span></div>
-    </div>
-    <div class="kb-row"><span class="kb-d">Search</span>
-      <div class="kb-keys"><span class="kbd">/</span></div>
-    </div>
-    <div class="kb-row"><span class="kb-d">Bookmark</span>
-      <div class="kb-keys"><span class="kbd">B</span></div>
-    </div>
-    <div class="kb-row"><span class="kb-d">Decks</span>
-      <div class="kb-keys"><span class="kbd">D</span></div>
-    </div>
-    <div class="kb-row"><span class="kb-d">Hide sidebar</span>
-      <div class="kb-keys"><span class="kbd">\</span></div>
-    </div>
-    <div class="kb-row"><span class="kb-d">Dark mode</span>
-      <div class="kb-keys"><span class="kbd">⌘.</span></div>
-    </div>
-    <div class="kb-row"><span class="kb-d">Snap grid</span>
-      <div class="kb-keys"><span class="kbd">⌘G</span></div>
-    </div>
-    <div class="kb-row"><span class="kb-d">Undo/Redo</span>
-      <div class="kb-keys"><span class="kbd">⌘Z</span><span class="kbd">⌘Y</span></div>
-    </div>
-    <div class="kb-row"><span class="kb-d">Delete</span>
-      <div class="kb-keys"><span class="kbd">Del</span></div>
-    </div>
-  </div>
-
-  <!-- MODALS -->
-  <div class="modal-bg" id="deckModal">
-    <div class="modal">
-      <h2>Create a deck</h2>
-      <div class="field"><label>Icon</label>
-        <div class="emoji-row" id="emojiRow"></div>
-      </div>
-      <div class="field"><label>Title</label><input id="dTitle" placeholder="e.g. Calculus II" /></div>
-      <div class="field"><label>Description</label><textarea id="dDesc"
-          placeholder="What's this deck about?"></textarea></div>
-      <div class="field"><label>Subject</label><select id="dTag">
-          <option>Math</option>
-          <option>Science</option>
-          <option>Language</option>
-          <option>History</option>
-          <option>Other</option>
-        </select></div>
-      <div class="modal-footer">
-        <button class="btn-cancel" onclick="closeOv('deckModal')">Cancel</button>
-        <button class="btn-ok" onclick="createDeck()">Create deck</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="modal-bg" id="noteModal">
-    <div class="modal">
-      <h2>Quick note</h2>
-      <div class="field"><label>Color</label>
-        <div class="sw-row">
-          <div class="csw sel" style="background:#fef9c3" data-nc="yellow" onclick="pickNC(this)"></div>
-          <div class="csw" style="background:#ede9fe" data-nc="lav" onclick="pickNC(this)"></div>
-          <div class="csw" style="background:#d1fae5" data-nc="green" onclick="pickNC(this)"></div>
-          <div class="csw" style="background:#ffedd5" data-nc="peach" onclick="pickNC(this)"></div>
-          <div class="csw" style="background:#fce7f3" data-nc="pink" onclick="pickNC(this)"></div>
-          <div class="csw" style="background:#e0f2fe" data-nc="sky" onclick="pickNC(this)"></div>
+    <div class="intro-cards-preview">
+      <div class="prev-card">
+        <div class="pc-bar" style="background:#d4d4d8"></div>
+        <div class="pc-icon">—</div>
+        <div class="pc-title">Notes</div>
+        <div class="pc-sub">Simple. Structured. Clear.</div>
+        <div class="pc-foot">
+          <span class="pc-tag">Capture</span>
+          <span class="pc-n">Always accessible</span>
         </div>
       </div>
-      <div class="field"><label>Label</label><input id="nLabel" placeholder="Reminder, Formula…" /></div>
-      <div class="field"><label>Content</label><textarea id="nContent" placeholder="Write your note…"></textarea></div>
-      <div class="modal-footer">
-        <button class="btn-cancel" onclick="closeOv('noteModal')">Cancel</button>
-        <button class="btn-ok" onclick="createNote()">Add note</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="modal-bg" id="studyModal">
-    <div class="modal" style="width:460px;text-align:center">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-        <div style="font-family:'Lora',serif;font-size:17px;font-weight:600" id="sDeckName"></div>
-        <div style="display:flex;gap:6px">
-          <button class="nav-btn" onclick="toggleShuffle()">🔀 Shuffle</button>
-          <button class="btn-cancel" onclick="closeOv('studyModal')">✕</button>
+      <div class="prev-card">
+        <div class="pc-bar" style="background:#a1a1aa"></div>
+        <div class="pc-icon">—</div>
+        <div class="pc-title">Ideas</div>
+        <div class="pc-sub">From thought to clarity.</div>
+        <div class="pc-foot">
+          <span class="pc-tag">Organize</span>
+          <span class="pc-n">Connected thinking</span>
         </div>
       </div>
-      <div id="srsBadge" class="srs-badge new">NEW</div>
-      <div class="flip-wrap" onclick="flipCard()">
-        <div class="flip-inner" id="flipInner">
-          <div class="flip-face front">
-            <p id="sFront"></p>
-          </div>
-          <div class="flip-face back">
-            <p id="sBack"></p>
-          </div>
-        </div>
-      </div>
-      <div class="study-hint">Click to flip · ← → navigate</div>
-      <div id="srsButtons" style="display:none;gap:8px;justify-content:center;margin-bottom:10px">
-        <button class="nav-btn" style="background:#fee2e2;border-color:#f87171;color:#991b1b"
-          onclick="srsRate('hard')">😓 Hard</button>
-        <button class="nav-btn" style="background:#d1fae5;border-color:#34d399;color:#065f46"
-          onclick="srsRate('good')">👍 Good</button>
-        <button class="nav-btn" style="background:#dbeafe;border-color:#60a5fa;color:#1e40af"
-          onclick="srsRate('easy')">⚡ Easy</button>
-      </div>
-      <div class="study-nav">
-        <button class="nav-btn" onclick="prevCard()">← Prev</button>
-        <span class="study-ctr" id="sCtr">1 / 1</span>
-        <button class="nav-btn" onclick="nextCard()">Next →</button>
-      </div>
-      <div class="study-bar">
-        <div class="study-fill" id="sFill" style="width:0%"></div>
-      </div>
-    </div>
-  </div>
-
-  <div class="modal-bg" id="cardModal">
-    <div class="modal" style="width:580px;max-height:90vh;overflow-y:auto">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-        <h2 id="cardModalTitle" style="margin:0">Cards</h2>
-        <div style="display:flex;gap:6px">
-          <button class="btn-cancel" onclick="exportDeckCSV()" style="font-size:11px">⬇ CSV</button>
-          <label class="btn-cancel" style="font-size:11px;cursor:pointer">⬆ CSV<input type="file" accept=".csv,.txt"
-              style="display:none" onchange="importCSV(this)" /></label>
-          <button class="btn-cancel" onclick="closeOv('cardModal')">✕</button>
-        </div>
-      </div>
-      <div class="card-section-label">Cards in this deck</div>
-      <div class="card-list" id="cardList"></div>
-      <div class="card-section-label" style="margin-top:14px">Add a new card</div>
-      <div class="field" style="margin-bottom:8px"><label>Front</label><input id="cFront"
-          placeholder="Question / term" /></div>
-      <div class="field" style="margin-bottom:10px"><label>Back</label><textarea id="cBack" rows="2"
-          placeholder="Answer / definition" onkeydown="if(event.key==='Enter'&&event.ctrlKey)addCard()"></textarea>
-      </div>
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        <button class="btn-ok" onclick="addCard()" style="flex:1">+ Add card</button>
-        <button class="ai-gen-btn" id="aiGenBtn" onclick="aiGenerateCards()">✨ AI Generate</button>
-      </div>
-      <div id="aiStatus" style="margin-top:8px;font-size:11px;color:#9a9a9a;text-align:center;min-height:16px"></div>
-    </div>
-  </div>
-
-  <div class="modal-bg" id="quizModal">
-    <div class="modal" style="width:500px">
-      <div id="quizModeSelect">
-        <h2 id="quizModeTitle">Choose quiz mode</h2>
-        <div class="quiz-modes">
-          <div class="quiz-mode-btn sel" onclick="selectQuizMode('mc',this)">
-            <div class="quiz-mode-icon">🔘</div>
-            <div class="quiz-mode-name">Multiple choice</div>
-          </div>
-          <div class="quiz-mode-btn" onclick="selectQuizMode('tf',this)">
-            <div class="quiz-mode-icon">✅</div>
-            <div class="quiz-mode-name">True / False</div>
-          </div>
-          <div class="quiz-mode-btn" onclick="selectQuizMode('fib',this)">
-            <div class="quiz-mode-icon">✏️</div>
-            <div class="quiz-mode-name">Fill in blank</div>
-          </div>
-        </div>
-        <div style="display:flex;align-items:center;gap:6px;margin-bottom:14px">
-          <label style="font-size:11px;color:#555">Questions:</label>
-          <input type="number" id="quizCount" value="5" min="1" max="20"
-            style="width:60px;border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:12px;font-family:inherit;outline:none" />
-        </div>
-        <div style="display:flex;gap:8px">
-          <button class="btn-cancel" onclick="closeOv('quizModal')" style="flex:1">Cancel</button>
-          <button class="btn-ok ai-gen-btn" onclick="startQuiz()" style="flex:2;border-radius:999px">✨ AI Quiz</button>
-        </div>
-        <div id="quizGenStatus" style="margin-top:8px;font-size:11px;color:#9a9a9a;text-align:center;min-height:16px">
-        </div>
-      </div>
-      <div id="quizGame" style="display:none">
-        <div class="quiz-header">
-          <div style="font-family:'Lora',serif;font-size:15px;font-weight:600" id="quizDeckName"></div>
-          <div class="quiz-ctr" id="quizCtr">1 / 5</div>
-        </div>
-        <div class="quiz-type-label" id="quizTypeLabel"></div>
-        <div class="quiz-q" id="quizQ"></div>
-        <div class="quiz-opts" id="quizOpts"></div>
-        <div id="quizFib" style="display:none;margin-bottom:16px">
-          <input class="fib-input" id="fibInput" placeholder="Type your answer…"
-            onkeydown="if(event.key==='Enter')checkFib()" />
-          <br><button class="fib-submit" onclick="checkFib()">Check</button>
-        </div>
-        <div class="quiz-feedback" id="quizFeedback"></div>
-        <div style="display:flex;align-items:center;justify-content:space-between">
-          <div class="quiz-score" id="quizScore">Score: 0</div>
-          <button class="nav-btn" id="quizNext" onclick="nextQuizQ()" style="display:none">Next →</button>
-        </div>
-        <div class="quiz-bar">
-          <div class="quiz-fill" id="quizFill" style="width:0%"></div>
-        </div>
-      </div>
-      <div id="quizResult" style="display:none;text-align:center">
-        <div class="quiz-result-score" id="quizResultScore"></div>
-        <div class="quiz-result-msg" id="quizResultMsg"></div>
-        <div style="margin-top:20px;display:flex;gap:8px;justify-content:center">
-          <button class="btn-cancel" onclick="closeOv('quizModal')">Close</button>
-          <button class="btn-ok" onclick="retryQuiz()">Try again</button>
+      <div class="prev-card">
+        <div class="pc-bar" style="background:#71717a"></div>
+        <div class="pc-icon">—</div>
+        <div class="pc-title">Knowledge</div>
+        <div class="pc-sub">Built over time.</div>
+        <div class="pc-foot">
+          <span class="pc-tag">Grow</span>
+          <span class="pc-n">Long-term memory</span>
         </div>
       </div>
     </div>
   </div>
+</div>
 
-  <div class="modal-bg" id="memeModal">
-    <div class="modal" style="width:420px">
-      <h2>Meme generator</h2>
-      <div class="meme-preview"><img id="mPrevImg" src="" style="background:#e0e0e0;min-height:130px" />
-        <div class="mp-top" id="mPrevTop"></div>
-        <div class="mp-bot" id="mPrevBot"></div>
-      </div>
-      <div style="display:flex;gap:6px;margin-bottom:12px">
-        <button class="meme-tbtn" onclick="loadMemeCat()">🐱 Random cat</button>
-        <button class="meme-tbtn" onclick="triggerMemeImg()">⬆ Upload</button>
-        <input type="file" id="memeFile" accept="image/*" style="display:none" onchange="handleMemeFile(this)" />
-      </div>
-      <div class="field"><label>Top text</label><input id="mTop" placeholder="When you…" oninput="updateMPrev()" />
-      </div>
-      <div class="field"><label>Bottom text</label><input id="mBot" placeholder="But then…" oninput="updateMPrev()" />
-      </div>
-      <div class="modal-footer"><button class="btn-cancel" onclick="closeOv('memeModal')">Cancel</button><button
-          class="btn-ok" onclick="placeMeme()">Drop on canvas</button></div>
-    </div>
-  </div>
+<script>
+/* ══════════════════════════════════════════════
+   PAGE VEIL — fade in the intro smoothly on load
+══════════════════════════════════════════════ */
+window.addEventListener('DOMContentLoaded', () => {
+  // Small delay so the browser has painted before we reveal
+  requestAnimationFrame(() => {
+    setTimeout(() => {
+      document.getElementById('pageVeil').classList.add('revealed');
+    }, 60);
+  });
+});
 
-  <!-- Cram Mode Setup Modal -->
-  <div class="modal-bg" id="cramModeModal">
-    <div class="modal" style="width:380px">
-      <h2>⏱️ Cram Mode</h2>
-      <p style="font-size:12px;color:#9a9a9a;margin:-4px 0 16px">Lock in. Use Cramly freely. Timer floats on screen.</p>
-      <div class="field">
-        <label>Session duration (minutes)</label>
-        <input type="number" id="cramDuration" value="25" min="1" max="180" />
-      </div>
-      <div class="field">
-        <label>Session name <span style="color:#9a9a9a;font-weight:400">(optional)</span></label>
-        <input type="text" id="cramSessionName" placeholder="e.g. Bio chapter 4" />
-      </div>
-      <div class="modal-footer">
-        <button class="btn-cancel" onclick="closeOv('cramModeModal')">Cancel</button>
-        <button class="btn-ok" onclick="launchCramMode()">🚀 Start session</button>
-      </div>
-    </div>
-  </div>
+/* ══════════════════════════════════════════════
+   DEMO LOADING ANIMATION
+══════════════════════════════════════════════ */
+const loadSteps = [
+  { label: 'Initializing',         pct: 8  },
+  { label: 'Loading flashcards',   pct: 22 },
+  { label: 'Building your decks',  pct: 38 },
+  { label: 'Syncing notes',        pct: 54 },
+  { label: 'Setting up workspace', pct: 70 },
+  { label: 'Almost ready',         pct: 88 },
+  { label: 'Launching demo',       pct: 100},
+];
 
-  <!-- Floating Cram HUD -->
-  <div id="cramHUD" style="display:none;position:fixed;bottom:28px;right:24px;z-index:9999;font-family:'Plus Jakarta Sans',sans-serif;user-select:none">
-    <div id="cramHUDInner" style="background:#0f0f0f;border:1px solid #2a2a2a;border-radius:16px;padding:14px 16px;min-width:200px;box-shadow:0 8px 40px rgba(0,0,0,.5)">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-        <span id="cramHUDLabel" style="font-size:11px;color:#555;font-weight:600;text-transform:uppercase;letter-spacing:.6px">Cram</span>
-        <div style="display:flex;gap:6px;align-items:center">
-          <span id="cramTabBadge" style="display:none;font-size:10px;background:#2a1010;color:#f87171;border:1px solid #4a1a1a;padding:2px 7px;border-radius:999px">⚠ <span id="cramTabNum">0</span> switch</span>
-          <button onclick="toggleHUDCollapse()" id="cramCollapseBtn" style="background:none;border:none;color:#555;cursor:pointer;font-size:16px;line-height:1;padding:0">−</button>
-          <button onclick="endCramMode()" style="background:none;border:none;color:#555;cursor:pointer;font-size:13px;line-height:1;padding:0" title="End session">✕</button>
-        </div>
-      </div>
-      <div id="cramHUDBody">
-        <div style="text-align:center;margin-bottom:10px">
-          <div id="cramTimerDisplay" style="font-size:40px;font-weight:200;color:#fff;font-variant-numeric:tabular-nums;letter-spacing:-1px;line-height:1">25:00</div>
-          <div style="font-size:10px;color:#444;margin-top:2px">remaining</div>
-        </div>
-        <div style="height:3px;background:#1a1a1a;border-radius:2px;overflow:hidden;margin-bottom:12px">
-          <div id="cramProgressBar" style="height:100%;background:#3b82f6;width:0%;transition:width 1s linear"></div>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px">
-          <div style="background:#1a1a1a;border-radius:8px;padding:7px 6px;text-align:center">
-            <div id="cramTimeSpent" style="font-size:15px;font-weight:500;color:#fff">0m</div>
-            <div style="font-size:9px;color:#555;margin-top:2px">spent</div>
-          </div>
-          <div style="background:#1a1a1a;border-radius:8px;padding:7px 6px;text-align:center">
-            <div id="cramStreak" style="font-size:15px;font-weight:500;color:#f59e0b">🔥 0</div>
-            <div style="font-size:9px;color:#555;margin-top:2px">day streak</div>
-          </div>
-          <div style="background:#1a1a1a;border-radius:8px;padding:7px 6px;text-align:center">
-            <div id="cramTotalTime" style="font-size:15px;font-weight:500;color:#a78bfa">0h</div>
-            <div style="font-size:9px;color:#555;margin-top:2px">total</div>
-          </div>
-        </div>
-        <div style="display:flex;gap:6px">
-          <button onclick="cramPauseResume()" id="cramPauseBtn" style="flex:1;background:#1a1a1a;border:1px solid #2a2a2a;color:#aaa;padding:6px;border-radius:8px;cursor:pointer;font-size:11px;font-family:inherit">⏸ Pause</button>
-          <button onclick="endCramMode()" style="flex:1;background:#1a1010;border:1px solid #3a1a1a;color:#f87171;padding:6px;border-radius:8px;cursor:pointer;font-size:11px;font-family:inherit">✕ End</button>
-        </div>
-      </div>
-    </div>
-  </div>
+function spawnFloatingCards() {
+  const container = document.getElementById('loadCards');
+  // Clear previous cards if re-triggered
+  container.innerHTML = '';
+  const cardConfigs = [
+    { left: '8%',  top: '20%', w: 130, delay: 0,   dur: 4.5 },
+    { left: '78%', top: '15%', w: 110, delay: 0.8, dur: 5.2 },
+    { left: '15%', top: '65%', w: 120, delay: 1.4, dur: 4.0 },
+    { left: '72%', top: '60%', w: 140, delay: 0.3, dur: 5.8 },
+    { left: '42%', top: '10%', w: 100, delay: 2.0, dur: 4.2 },
+    { left: '55%', top: '75%', w: 115, delay: 1.0, dur: 5.0 },
+  ];
+  const barColors = [
+    'rgba(147,197,253,0.3)',
+    'rgba(134,239,172,0.3)',
+    'rgba(253,230,138,0.3)',
+    'rgba(196,181,253,0.3)'
+  ];
+  cardConfigs.forEach(cfg => {
+    const card = document.createElement('div');
+    card.className = 'load-card';
+    card.style.cssText = `left:${cfg.left};top:${cfg.top};width:${cfg.w}px;animation-duration:${cfg.dur}s;animation-delay:${cfg.delay}s;`;
+    const barColor = barColors[Math.floor(Math.random() * barColors.length)];
+    card.innerHTML = `
+      <div class="load-card-bar" style="background:${barColor};width:${40+Math.random()*40}%"></div>
+      <div class="load-card-line"></div>
+      <div class="load-card-line short"></div>
+      <div class="load-card-line" style="width:${50+Math.random()*30}%"></div>
+    `;
+    container.appendChild(card);
+  });
+}
 
-  <input type="file" id="imgInput" accept="image/*" style="display:none" onchange="handleImgFile(this)" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <script src="/js/main.js"></script>
+let loadingInProgress = false;
 
-  <script>
-    /* ── Fade out the page veil once DOMContentLoaded ── */
-    document.addEventListener('DOMContentLoaded', () => {
-      requestAnimationFrame(() => {
-        setTimeout(() => {
-          document.getElementById('pageVeil').classList.add('out');
-          // Remove from DOM after transition so it can't block pointer events
-          setTimeout(() => {
-            const v = document.getElementById('pageVeil');
-            if (v) v.remove();
-          }, 600);
-        }, 60);
-      });
+function startDemoLoading() {
+  if (loadingInProgress) return;
+  loadingInProgress = true;
+
+  const veil    = document.getElementById('pageVeil');
+  const screen  = document.getElementById('loadingScreen');
+  const bar     = document.getElementById('loadBar');
+  const label   = document.getElementById('loadLabel');
+
+  // Reset bar state
+  bar.style.width = '0%';
+  label.textContent = 'Initializing';
+
+  // 1. Re-cover with the veil instantly (no flash of intro behind loading screen)
+  veil.style.transition = 'none';
+  veil.style.opacity = '1';
+  veil.classList.remove('revealed');
+
+  // 2. Show the loading screen on top of the veil, then fade veil out
+  screen.classList.add('active');
+  spawnFloatingCards();
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      veil.style.transition = 'opacity 0.35s ease';
+      veil.style.opacity = '0';
     });
-  </script>
+  });
+
+  // 3. Run the loading steps
+  let stepIdx = 0;
+  let currentPct = 0;
+
+  function animateBar(targetPct, onDone) {
+    const step = () => {
+      if (currentPct < targetPct) {
+        currentPct = Math.min(currentPct + 1.2, targetPct);
+        bar.style.width = currentPct + '%';
+        requestAnimationFrame(step);
+      } else if (onDone) {
+        onDone();
+      }
+    };
+    requestAnimationFrame(step);
+  }
+
+  function runStep() {
+    if (stepIdx >= loadSteps.length) return;
+    const { label: lbl, pct } = loadSteps[stepIdx];
+    label.style.opacity = '0';
+    setTimeout(() => {
+      label.textContent = lbl;
+      label.style.opacity = '1';
+    }, 180);
+
+    animateBar(pct, () => {
+      stepIdx++;
+      if (stepIdx < loadSteps.length) {
+        setTimeout(runStep, 320);
+      } else {
+        // 4. Done: fade veil back in over the loading screen, THEN navigate
+        setTimeout(() => {
+          veil.style.transition = 'opacity 0.5s ease';
+          veil.style.opacity = '1';
+
+          // Navigate only after the veil is fully opaque — zero flash
+          setTimeout(() => {
+            window.location.href = 'main.html';
+          }, 520);
+        }, 350);
+      }
+    });
+  }
+
+  setTimeout(runStep, 400);
+}
+</script>
 </body>
 </html>
